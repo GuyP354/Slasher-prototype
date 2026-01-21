@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 345574dbe8f6e1a47aff52f307e31c96
+guid: 6b78029f0378cda41ac356a5351fabe1
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -127,9 +127,9 @@ ScriptedImporter:
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
   animatedSpriteImportData:
-  - name: Annabell Myers Sprite
+  - name: Frame_0
     originalName: 
-    pivot: {x: 0.5, y: 0}
+    pivot: {x: 0.61538464, y: -0.54545456}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -139,7 +139,7 @@ ScriptedImporter:
       y: 4
       width: 13
       height: 33
-    spriteID: a175b96e74c22f84ca79c5636836ad34
+    spriteID: 204ef8c47c67bb24d9048bfee43645be
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -148,30 +148,180 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 4, y: 4}
+  - name: Frame_1
+    originalName: 
+    pivot: {x: 0.61538464, y: -0.54545456}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 4
+      y: 45
+      width: 13
+      height: 33
+    spriteID: 2cf60c26f28dfa74699a8aa2f5cebf73
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 4, y: 45}
+  - name: Frame_2
+    originalName: 
+    pivot: {x: 0.61538464, y: -0.54545456}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 4
+      y: 86
+      width: 13
+      height: 33
+    spriteID: c24a273f44b0ded40ad25c67cdcd7d4e
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 4, y: 86}
+  - name: Frame_3
+    originalName: 
+    pivot: {x: 0.61538464, y: -0.54545456}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 25
+      y: 4
+      width: 13
+      height: 33
+    spriteID: 22fc89684881bfb43b916758cd1b56f5
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 25, y: 4}
+  - name: Frame_4
+    originalName: 
+    pivot: {x: 0.61538464, y: -0.54545456}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 25
+      y: 45
+      width: 13
+      height: 33
+    spriteID: a5bd2ee8f5767844c92d3bb3a1e65f42
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 25, y: 45}
+  - name: Frame_5
+    originalName: 
+    pivot: {x: 0.61538464, y: -0.54545456}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 25
+      y: 86
+      width: 13
+      height: 33
+    spriteID: 625ad34c883238c40a2d1cc2a8c97433
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 25, y: 86}
   spriteSheetImportData: []
   tileSetImportData: []
   asepriteLayers:
   - layerIndex: 0
     uuid:
-      value0: 3429685492
+      value0: 869984974
       value1: 0
       value2: 0
       value3: 0
     guid: 0
-    name: Annabell Myers Sprite
+    name: Annabell Myers Sprite2
     layerFlags: 0
     layerType: 0
     blendMode: 0
     cells:
-    - name: Annabell Myers Sprite
+    - name: Frame_0
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
-        x: 0
-        y: 0
+        x: 24
+        y: 18
         width: 13
         height: 33
-      spriteId: a175b96e74c22f84ca79c5636836ad34
+      spriteId: 204ef8c47c67bb24d9048bfee43645be
+    - name: Frame_1
+      frameIndex: 1
+      additiveSortOrder: 0
+      cellRect:
+        x: 24
+        y: 18
+        width: 13
+        height: 33
+      spriteId: 2cf60c26f28dfa74699a8aa2f5cebf73
+    - name: Frame_2
+      frameIndex: 2
+      additiveSortOrder: 0
+      cellRect:
+        x: 24
+        y: 18
+        width: 13
+        height: 33
+      spriteId: c24a273f44b0ded40ad25c67cdcd7d4e
+    - name: Frame_3
+      frameIndex: 3
+      additiveSortOrder: 0
+      cellRect:
+        x: 24
+        y: 18
+        width: 13
+        height: 33
+      spriteId: 22fc89684881bfb43b916758cd1b56f5
+    - name: Frame_4
+      frameIndex: 4
+      additiveSortOrder: 0
+      cellRect:
+        x: 24
+        y: 18
+        width: 13
+        height: 33
+      spriteId: a5bd2ee8f5767844c92d3bb3a1e65f42
+    - name: Frame_5
+      frameIndex: 5
+      additiveSortOrder: 0
+      cellRect:
+        x: 24
+        y: 18
+        width: 13
+        height: 33
+      spriteId: 625ad34c883238c40a2d1cc2a8c97433
     linkedCells: []
     tileCells: []
     tileSetIndex: 0
@@ -181,5 +331,5 @@ ScriptedImporter:
   generatePhysicsShape: 0
   secondarySpriteTextures: []
   spritePackingTag: 
-  canvasSize: {x: 13, y: 33}
-  previousTextureSize: {x: 32, y: 64}
+  canvasSize: {x: 64, y: 64}
+  previousTextureSize: {x: 64, y: 128}
