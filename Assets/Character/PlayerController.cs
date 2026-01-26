@@ -1,39 +1,46 @@
-using UnityEditor.Searcher;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour {
-    [SerializeField] private Rigidbody _rb;
-    [SerializeField] private float _speed = 6;
-    [SerializeField] private float _turnSpeed = 418;
-    private Vector3 _input;
-
-    private void Update() {
-        GatherInput();
-        Look();
-    }
-
-    private void FixedUpdate() {
-        Move();
-    }
-
-    private void GatherInput() {
-        _input = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
-    }
-
-    private void Look() {
-        if (_input == Vector3.zero) return;
-
-        var rot = Quaternion.LookRotation(_input.ToIso(), Vector3.up);
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, rot, _turnSpeed * Time.deltaTime);
-    }
-
-    private void Move() {
-        _rb.MovePosition(transform.position + transform.forward *_input.normalized.magnitude * _speed * Time.deltaTime);
-    }
-}
-
-public static class Helpers 
+public class PlayerController : MonoBehaviour
 {
-    private static Matrix4x4 _isoMatrix = Matrix4x4.Rotate(Quaternion.Euler(0, 45, 0));
-    public static Vector3 ToIso(this Vector3 input) => _isoMatrix.MultiplyPoint3x4(input);
+    public float speed;
+    public float groundDist;
+
+    public LayerMask terrainLayer;
+    public Rigidbody rb;
+    public SpriteRenderer sr;
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+
+    {
+        rb = gameObject.GetComponent<Rigidbody>();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        RaycastHit hit;
+        Vector3 castPos = transform.position;
+        castPos.y += 1;
+        if (Physics.Raycast(castPos, -transform.up, out hit, Mathf.Infinity, terrainLayer))
+        {
+            if (hit.collider != null)
+            {
+                Vector3 movePos = transform.position;
+                movePos.y = hit.point.y + groundDist;
+                transform.position = movePos;
+            }
+        }
+        float x = Input.GetAxis("Horizontal");
+        float y = Input.GetAxis("Vertical");
+        Vector3 moveDir = new Vector3(x, 0, y);
+        rb.linearVelocity = moveDir * speed;
+        if (x != 0 && x < 0)
+        {
+            sr.flipX = true;
+        }
+        else if (x != 0 && x > 0)
+        {
+            sr.flipY = false;
+        }
+    }
 }
