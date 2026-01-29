@@ -32,11 +32,11 @@ public class PlayerController : MonoBehaviour
         }
         float x = Input.GetAxis("Horizontal");
         float y = Input.GetAxis("Vertical");
-        Vector3 moveDir = new Vector3(x, 0, y);
+        Vector3 moveDir = new Vector3(x, 0, y).normalized;
         rb.linearVelocity = moveDir * speed;
         if (x != 0 && x < 0)
         {
-            sr.flipX = true;
+            sr.flipX = false;
         }
         else if (x != 0 && x > 0)
         {
