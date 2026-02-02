@@ -13,8 +13,7 @@ public class SpawnManager : MonoSingleton<SpawnManager>
 
     public void Spawn(int spawnPrefabIndex, int spawnPointIndex)
     {
-        Instantiate(
-            spawnPrefabs[spawnPrefabIndex],
+        Instantiate(spawnPrefabs[spawnPrefabIndex],
             spawnPoint[spawnPointIndex].position,
             spawnPoint[spawnPointIndex].rotation
         );
@@ -28,10 +27,12 @@ public class SpawnManager : MonoSingleton<SpawnManager>
         if (Input.GetKeyDown(KeyCode.Alpha2))
             Spawn(1);
         if (Input.GetKeyDown(KeyCode.Alpha3))
-            Spawn(0, 1);
+            Spawn(0, 2);
         if (Input.GetKeyDown(KeyCode.Alpha4))
             Spawn(1, 1);
         if (Input.GetKeyDown(KeyCode.Alpha5))
+            Spawn(0,1);
+        if (Input.GetKeyDown(KeyCode.Alpha6))
             Spawn(1, 2);
     }
 }
