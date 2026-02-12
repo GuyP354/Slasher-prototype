@@ -7,6 +7,7 @@ public class DefeatZone : MonoBehaviour
         if(col.tag == "Enemy")
         {
             LevelManager.Instance.EnemyCrossed();
+            Destroy(col.gameObject);
         }
     }
 }
