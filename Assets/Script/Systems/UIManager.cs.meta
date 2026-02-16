@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 7253f141efb09e54bbe1d144c74880e6
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - root: {fileID: 5349417786701468929, guid: 29bfcc5a86576cf4c9c163b0668ff3ef, type: 3}
+  - waveInfoPanel: {instanceID: 0}
+  - currentWaveText: {instanceID: 0}
+  - enemiesAliveText: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

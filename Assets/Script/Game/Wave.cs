@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class Wave : MonoBehaviour
 {
-    public List<WaveEvent> events = new List<WaveEvent>();
+    public List<WaveEvent> events = new();
     private bool isPlaying = false;
 
     public void StartWave()
@@ -14,8 +14,7 @@ public class Wave : MonoBehaviour
             events[0].StartEvent();
         else
         {
-            Debug.Log("End Wave");
-            Destroy(this);
+            LevelManager.Instance.EndWave();
         }
     }
 
@@ -30,10 +29,8 @@ public class Wave : MonoBehaviour
             events.RemoveAt(0);
 
             if (events.Count == 0)
-            {
-                Debug.Log("End Wave");
-                Destroy(this);
-            }
+                LevelManager.Instance.EndWave();
+            
             else
                 events[0].StartEvent();
         }
@@ -50,6 +47,10 @@ public class Wave : MonoBehaviour
         public void StartEvent()
         {
             startTime = Time.time;
+            foreach (var info in spawnInfos)
+            {
+                info.Initialize();
+            }
         }
 
         public bool RunEvent()
@@ -76,6 +77,7 @@ public class Wave : MonoBehaviour
 
         [System.Serializable]
         public class SpawnInfo
+
         {
             public int spawnPointIndex = 0;
             public int spawnPrefabIndex = 0;
@@ -84,13 +86,28 @@ public class Wave : MonoBehaviour
 
             private float lastTime;
 
+            public void Initialize()
+            {
+                lastTime = Time.time;
+            }
+
             public void ReadyToSpawn()
             {
                 if (Time.time - lastTime >= interval)
                 {
                     SpawnManager.Instance.Spawn(spawnPrefabIndex, spawnPointIndex);
-                    amount--;
                     lastTime = Time.time;
+                    amount--;
+                }
+
+                void ReadyToSpawn()
+                {
+                    if (Time.time - lastTime >= interval)
+                    {
+                        SpawnManager.Instance.Spawn(spawnPrefabIndex, spawnPointIndex);
+                        amount--;
+                        lastTime = Time.time;
+                    }
                 }
             }
         }
