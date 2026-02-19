@@ -4,6 +4,8 @@ using System.Collections.Generic;
 public class LevelManager : MonoSingleton<LevelManager>
 {
     [SerializeField] private int lifePoint = 10;
+    private int currentWave;
+    private int ammWave;
 
     private bool spawnActive = false;
     private bool waveActive = false;
@@ -15,20 +17,22 @@ public class LevelManager : MonoSingleton<LevelManager>
         
         waves.Clear();
         waves.AddRange(GetComponents<Wave>());
+        currentWave = 0;
+        ammWave = waves.Count;
     }
 
     private void Update()
     {
         if (!waveActive)
         {
-            
             if (Input.GetKeyDown(KeyCode.K) && waves.Count > 0)
                 StartWave();
         }
         else
         {
-         
-            if (!spawnActive && GameObject.FindGameObjectWithTag("Enemy") == null)
+            int enemyCount = GameObject.FindGameObjectsWithTag("Enemy").Length;
+            UIManager.Instance.UpdateWaveDisplay(enemyCount);
+            if (!spawnActive && enemyCount == 0)
             {
                 waveActive = false;
                 Debug.Log("Wave cleared");
@@ -43,10 +47,13 @@ public class LevelManager : MonoSingleton<LevelManager>
     {
         if (waves.Count > 0)
         {
-            Debug.Log("Wave Start");
+            currentWave++; // Increment the counter
             waves[0].StartWave();
             spawnActive = true;
             waveActive = true;
+            
+            // Initial UI Update
+            UIManager.Instance.UpdateWaveDisplay(0);
         }
     }
 
@@ -66,6 +73,11 @@ public class LevelManager : MonoSingleton<LevelManager>
         lifePoint--;
         if (lifePoint <= 0) 
             Defeat();
+    }
+
+    public string GetWaveInfo()
+    {
+        return currentWave + "/" + ammWave;
     }
 
     private void Victory() => Debug.Log("Level Cleared");

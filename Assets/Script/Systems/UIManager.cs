@@ -4,7 +4,6 @@ using TMPro; // Use TextMeshPro for better quality
 public class UIManager : MonoSingleton<UIManager>
 {
     [Header("UI Containers")]
-    [SerializeField] private GameObject root;
     [SerializeField] private GameObject waveInfoPanel;
 
     [Header("Text References")]
@@ -13,18 +12,15 @@ public class UIManager : MonoSingleton<UIManager>
 
     public override void Init()
     {
-        // No more GetComponentsInChildren needed! 
-        // Just ensure you assign the slots in the Unity Inspector.
-        base.Init();
+        // Ensure the panel is active when the game starts
+        waveInfoPanel.SetActive(true);
     }
 
-    /// <summary>
-    /// Updates the wave display. Pass in the actual values!
-    /// </summary>
-    public void UpdateWaveDisplay(int waveIndex, int enemyCount)
+    public void UpdateWaveDisplay(int enemyCount)
     {
-        // Using string interpolation ($"") is cleaner than "+"
-        currentWaveText.text = $"Current Wave: {waveIndex}";
-        enemiesAliveText.text = $"Enemies Alive: {enemyCount}";
+        // levelManager.GetWaveInfo() already provides "current/total", 
+        // so we just format the label around it.
+        currentWaveText.text = LevelManager.Instance.GetWaveInfo();
+        enemiesAliveText.text = enemyCount.ToString();
     }
 }
