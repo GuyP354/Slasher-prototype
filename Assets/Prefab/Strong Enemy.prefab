@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 5998550956274804501}
   - component: {fileID: 3595708684066704705}
   - component: {fileID: 7463250741753833129}
-  - component: {fileID: 3839482499806499283}
-  - component: {fileID: 8630926112542735535}
+  - component: {fileID: 2248724989433509439}
   - component: {fileID: 1538965188488871293}
+  - component: {fileID: -922447648415065678}
   m_Layer: 0
   m_Name: Strong Enemy
   m_TagString: Enemy
@@ -116,7 +116,7 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &3839482499806499283
+--- !u!114 &2248724989433509439
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -125,31 +125,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 7262233557373740772}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 22d822bcdd7de61418f208509504acee, type: 3}
+  m_Script: {fileID: 11500000, guid: d917a3db95b9e0743b3dfce6a62f9e54, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AIMovement
---- !u!195 &8630926112542735535
-NavMeshAgent:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7262233557373740772}
-  m_Enabled: 1
-  m_AgentTypeID: 0
-  m_Radius: 0.5
-  m_Speed: 3.5
-  m_Acceleration: 8
-  avoidancePriority: 50
-  m_AngularSpeed: 120
-  m_StoppingDistance: 0
-  m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
-  m_AutoRepath: 1
-  m_Height: 2
-  m_BaseOffset: 1
-  m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyCombat
+  objectiveTag: Target
+  obstacleTag: Obstacle
+  detectionRange: 10
+  obstacleLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  scanInterval: 0.15
+  attackRange: 1.6
+  attacksPerSecond: 1
+  damagePerHit: 10
 --- !u!54 &1538965188488871293
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -177,3 +165,25 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!195 &-922447648415065678
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7262233557373740772}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 2
+  m_BaseOffset: 1
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
