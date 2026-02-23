@@ -50,6 +50,6 @@ public class SpawnManager : MonoSingleton<SpawnManager>
         if (Input.GetKeyDown(KeyCode.Alpha6))
             Spawn(1, 2);
         
-        Debug.Log(GetEnemiesLeft());
+        //Debug.Log(GetEnemiesLeft());
     }
 }

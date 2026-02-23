@@ -13,8 +13,8 @@ GameObject:
   - component: {fileID: 3595708684066704705}
   - component: {fileID: 7463250741753833129}
   - component: {fileID: 2248724989433509439}
-  - component: {fileID: 1538965188488871293}
   - component: {fileID: -922447648415065678}
+  - component: {fileID: -8330209901427446561}
   m_Layer: 0
   m_Name: Strong Enemy
   m_TagString: Enemy
@@ -129,42 +129,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyCombat
   objectiveTag: Target
-  obstacleTag: Obstacle
-  detectionRange: 10
+  detectionRange: 7
   obstacleLayers:
     serializedVersion: 2
     m_Bits: 4294967295
   scanInterval: 0.15
-  attackRange: 1.6
-  attacksPerSecond: 1
+  attackRange: 2.5
+  attacksPerSecond: 0.7
   damagePerHit: 10
---- !u!54 &1538965188488871293
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7262233557373740772}
-  serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!195 &-922447648415065678
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -187,3 +159,19 @@ NavMeshAgent:
   m_BaseOffset: 1
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &-8330209901427446561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7262233557373740772}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f57424fdd40bf5a47beb508c8d97263a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Health
+  maxHealth: 50
+  onDeath:
+    m_PersistentCalls:
+      m_Calls: []

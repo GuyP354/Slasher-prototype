@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -5,7 +6,7 @@ public partial class EnemyCombat : MonoBehaviour
 {
     [Header("Tags")]
     [SerializeField] private string objectiveTag = "Target";
-    [SerializeField] private string obstacleTag = "Obstacle";
+    [SerializeField] private ArrayList obstacleTags = new ArrayList {"Obstacle", "Target"};
 
     [Header("Detection (planar / horizontal priority)")]
     [SerializeField] private float detectionRange = 6f;
@@ -113,10 +114,10 @@ public partial class EnemyCombat : MonoBehaviour
             Transform t = c.transform;
 
             // Allow obstacle colliders on child objects
-            if (!t.CompareTag(obstacleTag))
+            if (!obstacleTags.Contains(t.tag))
             {
                 Transform p = t.parent;
-                if (p == null || !p.CompareTag(obstacleTag))
+                if (p == null || !obstacleTags.Contains(p.tag))
                     continue;
 
                 t = p;
