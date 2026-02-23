@@ -134,7 +134,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   scanInterval: 0.15
-  attackRange: 2.5
+  attackRange: 3
   attacksPerSecond: 0.7
   damagePerHit: 10
 --- !u!195 &-922447648415065678
