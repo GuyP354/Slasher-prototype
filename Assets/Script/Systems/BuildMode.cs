@@ -1,9 +1,11 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 
 public class BuildMode : MonoBehaviour
 {
+    private const float PREVIEW_DISTANCE_FROM_PLAYER = 3.0f;
     public List<GameObject> defencePrefabs;
     private Transform playerTransform;
     private Transform cameraTransform;
@@ -21,6 +23,15 @@ public class BuildMode : MonoBehaviour
     private void Update()
     {
         PoolInput();
+        if(!isActive)
+            return;
+        MoveSpawnPreview ();
+    }
+
+    private void MoveSpawnPreview()
+    {
+        Vector3 previewPosition = (transform.position) + (-transform.right * PREVIEW_DISTANCE_FROM_PLAYER);
+        spawnPreview.transform.position = previewPosition;
     }
 
     private void PoolInput()
