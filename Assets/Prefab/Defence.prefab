@@ -143,7 +143,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleDefense
   enemyTag: Enemy
-  attackRange: 2
+  attackRange: 2.12
   attacksPerSecond: 1
   damagePerHit: 10
 --- !u!54 &6398004058733578796
