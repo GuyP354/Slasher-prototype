@@ -5,13 +5,27 @@ public class Wave : MonoBehaviour
     public List<WaveEvent> events = new();
     private bool isPlaying;
     private bool waitingForNextEvent;
+    private int totalEvents;
+    private int completedEvents;
+    private void FinishWave()
+    {
+        if (!isPlaying)
+            return;
+
+        isPlaying = false;
+        waitingForNextEvent = false;
+        LevelManager.Instance.EndWave();
+    }
+
     public void StartWave()
     {
         isPlaying = true;
         waitingForNextEvent = false;
+        totalEvents = events.Count;
+        completedEvents = 0;
         if (events.Count == 0)
         {
-            LevelManager.Instance.EndWave();
+            FinishWave();
             return;
         }
         waitingForNextEvent = true;
@@ -27,7 +41,7 @@ public class Wave : MonoBehaviour
             {
                 waitingForNextEvent = false;
                 if (events.Count == 0)
-                    LevelManager.Instance.EndWave();
+                    FinishWave();
                 else
                     events[0].StartEvent();
             }
@@ -36,16 +50,17 @@ public class Wave : MonoBehaviour
         // Run current event
         if (events.Count == 0)
         {
-            LevelManager.Instance.EndWave();
+            FinishWave();
             return;
         }
         if (!events[0].RunEvent())
         {
             Debug.Log("End Event");
+            completedEvents++;
             events.RemoveAt(0);
             if (events.Count == 0)
             {
-                LevelManager.Instance.EndWave();
+                FinishWave();
             }
             else
             {
@@ -54,6 +69,17 @@ public class Wave : MonoBehaviour
                 Debug.Log("Press E to start next event");
             }
         }
+    }
+
+    public string GetEventInfo()
+    {
+        if (totalEvents <= 0)
+            return "0/0";
+
+        if (events.Count == 0)
+            return totalEvents + "/" + totalEvents;
+
+        return (completedEvents + 1) + "/" + totalEvents;
     }
     [System.Serializable]
     public class WaveEvent

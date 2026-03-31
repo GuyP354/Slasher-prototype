@@ -32,6 +32,7 @@ public class LevelManager : MonoSingleton<LevelManager>
         {
             int enemyCount = GameObject.FindGameObjectsWithTag("Enemy").Length;
             UIManager.Instance.UpdateWaveDisplay(enemyCount);
+
             if (!spawnActive && enemyCount == 0)
             {
                 waveActive = false;
@@ -77,7 +78,10 @@ public class LevelManager : MonoSingleton<LevelManager>
 
     public string GetWaveInfo()
     {
-        return currentWave + "/" + ammWave;
+        if (waveActive && waves.Count > 0)
+            return waves[0].GetEventInfo();
+
+        return "0/0";
     }
 
     private void Victory() => Debug.Log("Level Cleared");
