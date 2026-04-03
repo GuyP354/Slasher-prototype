@@ -3,10 +3,14 @@ using System.Collections.Generic;
 public class Wave : MonoBehaviour
 {
     public List<WaveEvent> events = new();
+    public event System.Action WaveElementStarted;
+    public event System.Action WaveElementEnded;
+    private bool advanceAllowed;
     private bool isPlaying;
     private bool waitingForNextEvent;
     private int totalEvents;
     private int completedEvents;
+    public void SetAdvanceAllowed(bool allowed) => advanceAllowed = allowed;
     private void FinishWave()
     {
         if (!isPlaying)
@@ -14,6 +18,7 @@ public class Wave : MonoBehaviour
 
         isPlaying = false;
         waitingForNextEvent = false;
+        advanceAllowed = false;
         LevelManager.Instance.EndWave();
     }
 
@@ -37,13 +42,16 @@ public class Wave : MonoBehaviour
         // If we finished an event, wait for E to start the next one
         if (waitingForNextEvent)
         {
-            if (Input.GetKeyDown(KeyCode.E))
+            if (Input.GetKeyDown(KeyCode.E) && advanceAllowed)
             {
                 waitingForNextEvent = false;
                 if (events.Count == 0)
                     FinishWave();
                 else
+                {
                     events[0].StartEvent();
+                    WaveElementStarted?.Invoke();
+                }
             }
             return;
         }
@@ -56,6 +64,7 @@ public class Wave : MonoBehaviour
         if (!events[0].RunEvent())
         {
             Debug.Log("End Event");
+            WaveElementEnded?.Invoke();
             completedEvents++;
             events.RemoveAt(0);
             if (events.Count == 0)
@@ -95,10 +104,17 @@ public class Wave : MonoBehaviour
         }
         public bool RunEvent()
         {
-            if (duration == 0.0f && spawnInfos.Count == 0)
-                return false;
-            if (duration != 0.0f && Time.time - startTime > duration)
-                return false;
+            // If this element doesn't spawn anything, fall back to time duration.
+            if (spawnInfos.Count == 0)
+            {
+                if (duration == 0.0f)
+                    return false;
+                if (duration != 0.0f && Time.time - startTime > duration)
+                    return false;
+                return true;
+            }
+
+            // Spawning elements: keep running until all spawnInfos are depleted.
             for (int i = 0; i < spawnInfos.Count; i++)
             {
                 spawnInfos[i].ReadyToSpawn();
@@ -108,6 +124,15 @@ public class Wave : MonoBehaviour
                     i--;
                 }
             }
+
+            // Once all enemies are spawned, only end when there are no remaining enemies in the scene.
+            if (spawnInfos.Count == 0)
+            {
+                int enemyCount = GameObject.FindGameObjectsWithTag("Enemy").Length;
+                if (enemyCount == 0)
+                    return false;
+            }
+
             return true;
         }
         [System.Serializable]

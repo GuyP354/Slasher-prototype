@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 
 public class LevelManager : MonoSingleton<LevelManager>
 {
@@ -10,6 +11,7 @@ public class LevelManager : MonoSingleton<LevelManager>
     private bool spawnActive = false;
     private bool waveActive = false;
     private List<Wave> waves = new List<Wave>();
+    private UIManager uiManager;
 
     
     public override void Init() 
@@ -19,19 +21,25 @@ public class LevelManager : MonoSingleton<LevelManager>
         waves.AddRange(GetComponents<Wave>());
         currentWave = 0;
         ammWave = waves.Count;
+        uiManager = FindFirstObjectByType<UIManager>();
+    }
+
+    private IEnumerator Start()
+    {
+        // Wait one frame so scene managers/UI are initialized before starting.
+        yield return null;
+
+        if (!waveActive && waves.Count > 0)
+            StartWave();
     }
 
     private void Update()
     {
-        if (!waveActive)
-        {
-            if (Input.GetKeyDown(KeyCode.K) && waves.Count > 0)
-                StartWave();
-        }
-        else
+        if (waveActive)
         {
             int enemyCount = GameObject.FindGameObjectsWithTag("Enemy").Length;
-            UIManager.Instance.UpdateWaveDisplay(enemyCount);
+            if (uiManager != null)
+                uiManager.UpdateWaveDisplay(enemyCount);
 
             if (!spawnActive && enemyCount == 0)
             {
@@ -54,7 +62,8 @@ public class LevelManager : MonoSingleton<LevelManager>
             waveActive = true;
             
             // Initial UI Update
-            UIManager.Instance.UpdateWaveDisplay(0);
+            if (uiManager != null)
+                uiManager.UpdateWaveDisplay(0);
         }
     }
 
