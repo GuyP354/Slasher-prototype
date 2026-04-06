@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 
-public class LevelManager : MonoSingleton<LevelManager>
+public class LevelManager : MonoSingleton<LevelManager>, ILevelWaveInfo
 {
     [SerializeField] private int lifePoint = 10;
     private int currentWave;
@@ -11,7 +11,7 @@ public class LevelManager : MonoSingleton<LevelManager>
     private bool spawnActive = false;
     private bool waveActive = false;
     private List<Wave> waves = new List<Wave>();
-    private UIManager uiManager;
+    private IGameUI uiManager;
 
     
     public override void Init() 

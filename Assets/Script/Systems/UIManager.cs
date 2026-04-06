@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro; // Use TextMeshPro for better quality
 
-public class UIManager : MonoSingleton<UIManager>
+public class UIManager : MonoSingleton<UIManager>, IGameUI
 {
     [Header("UI Containers")]
     [SerializeField] private GameObject waveInfoPanel;
@@ -18,9 +18,8 @@ public class UIManager : MonoSingleton<UIManager>
 
     public void UpdateWaveDisplay(int enemyCount)
     {
-        // levelManager.GetWaveInfo() already provides "current/total", 
-        // so we just format the label around it.
-        currentWaveText.text = LevelManager.Instance.GetWaveInfo();
+        ILevelWaveInfo level = LevelManager.Instance;
+        currentWaveText.text = level != null ? level.GetWaveInfo() : "0/0";
         enemiesAliveText.text = enemyCount.ToString();
     }
 }

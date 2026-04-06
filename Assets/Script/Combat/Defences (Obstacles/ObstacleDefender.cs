@@ -10,7 +10,12 @@ public class ObstacleDefense : MonoBehaviour
     [SerializeField] private float attacksPerSecond = 1.0f; // 1 hit per second
     [SerializeField] private int damagePerHit = 10;
 
+    [Header("Placement (Tower preview)")]
+    [SerializeField] private float minSeparationFromOtherDefences = 20f;
+
     private float nextAttackTime;
+
+    public float MinSeparationFromOtherDefences => minSeparationFromOtherDefences;
 
     private void Update()
     {

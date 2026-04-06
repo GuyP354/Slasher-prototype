@@ -1,6 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
-public class Wave : MonoBehaviour
+public class Wave : MonoBehaviour, IWaveAdvance
 {
     public List<WaveEvent> events = new();
     public event System.Action WaveElementStarted;

@@ -7,55 +7,208 @@ public class BuildMode : MonoBehaviour
 
     public List<GameObject> defencePrefabs;
 
-    [Header("Preview")]
-    public Material previewMaterial; // assign in Inspector (optional)
+    [Header("Preview materials")]
+    [Tooltip("Material when placement is valid.")]
+    public Material previewMaterial;
+    [Tooltip("Material when preview overlaps something (e.g. red).")]
+    public Material invalidPreviewMaterial;
+
+    [Header("Placement overlap")]
+    [Tooltip("Hits on these layers are ignored (e.g. Ground / Terrain) so the preview can sit on the floor.")]
+    [SerializeField] private LayerMask overlapIgnoreLayers;
+
     private GameObject spawnPreview;
-
-    // This is the Vector you asked for (changes with WASD / Arrow keys)
     private Vector3 previewDirection = Vector3.left;
-
-    private bool isActive = false;
+    private bool isActive;
+    private int prefabIndex;
+    private Renderer[] previewRenderers;
+    private bool lastOverlapInvalid = true;
 
     private void Start()
     {
-        // Create the Defence preview (same prefab as before)
-        spawnPreview = Instantiate(defencePrefabs[0]);
-        ApplyPreviewMaterial(spawnPreview);
-        spawnPreview.SetActive(false);
+        if (defencePrefabs == null || defencePrefabs.Count == 0)
+        {
+            Debug.LogWarning("BuildMode: assign defence prefabs.");
+            return;
+        }
+
+        prefabIndex = 0;
+        for (int i = 0; i < defencePrefabs.Count; i++)
+        {
+            if (defencePrefabs[i] != null)
+            {
+                prefabIndex = i;
+                break;
+            }
+        }
+
+        if (defencePrefabs[prefabIndex] == null)
+        {
+            Debug.LogWarning("BuildMode: no valid prefab in list.");
+            return;
+        }
+
+        RebuildSpawnPreview();
     }
 
     private void Update()
     {
         PoolInput();
-        if (!isActive)
+        if (!isActive || spawnPreview == null)
             return;
 
-        UpdatePreviewDirectionInput();
         MoveSpawnPreview();
+        UpdatePreviewDirectionInput();
+
+        bool invalid = PreviewOverlapsBlockingCollider();
+        if (invalid != lastOverlapInvalid)
+        {
+            lastOverlapInvalid = invalid;
+            ApplyPreviewVisuals(invalid);
+        }
     }
 
     private void UpdatePreviewDirectionInput()
     {
-        // Only 4 directions (no diagonals). Uses KeyDown so it "snaps" direction.
-        if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
-            previewDirection = -transform.right;      // left of player
-        else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
-            previewDirection = transform.right;       // right of player
-        else if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
-            previewDirection = transform.forward;    // behind player
-        else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
-            previewDirection = -transform.forward;     // in front of player
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+            CyclePrefab(-1);
+        else if (Input.GetKeyDown(KeyCode.RightArrow))
+            CyclePrefab(1);
+
+        if (Input.GetKeyDown(KeyCode.A))
+            previewDirection = -transform.right;
+        else if (Input.GetKeyDown(KeyCode.D))
+            previewDirection = transform.right;
+        else if (Input.GetKeyDown(KeyCode.W))
+            previewDirection = transform.forward;
+        else if (Input.GetKeyDown(KeyCode.S))
+            previewDirection = -transform.forward;
+
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            Instantiate(defencePrefabs[0], spawnPreview.transform.position, spawnPreview.transform.rotation);
+            if (PreviewOverlapsBlockingCollider())
+                return;
+            if (defencePrefabs != null && prefabIndex >= 0 && prefabIndex < defencePrefabs.Count && defencePrefabs[prefabIndex] != null)
+                Instantiate(defencePrefabs[prefabIndex], spawnPreview.transform.position, spawnPreview.transform.rotation);
         }
     }
-    
 
     private void MoveSpawnPreview()
     {
         Vector3 previewPosition = transform.position + (previewDirection * PREVIEW_DISTANCE_FROM_PLAYER);
         spawnPreview.transform.position = previewPosition;
+    }
+
+    private void CyclePrefab(int delta)
+    {
+        if (defencePrefabs == null || defencePrefabs.Count == 0) return;
+
+        int start = prefabIndex;
+        for (int i = 0; i < defencePrefabs.Count; i++)
+        {
+            prefabIndex = (prefabIndex + delta + defencePrefabs.Count) % defencePrefabs.Count;
+            if (defencePrefabs[prefabIndex] != null)
+            {
+                RebuildSpawnPreview();
+                return;
+            }
+        }
+
+        prefabIndex = start;
+    }
+
+    private void RebuildSpawnPreview()
+    {
+        if (defencePrefabs == null || defencePrefabs.Count == 0) return;
+        if (defencePrefabs[prefabIndex] == null) return;
+
+        if (spawnPreview != null)
+        {
+            Destroy(spawnPreview);
+            spawnPreview = null;
+        }
+
+        spawnPreview = Instantiate(defencePrefabs[prefabIndex]);
+        foreach (var c in spawnPreview.GetComponentsInChildren<Collider>(true))
+            c.enabled = false;
+        foreach (var od in spawnPreview.GetComponentsInChildren<ObstacleDefense>(true))
+            od.enabled = false;
+
+        previewRenderers = spawnPreview.GetComponentsInChildren<Renderer>(true);
+        spawnPreview.SetActive(isActive);
+
+        MoveSpawnPreview();
+        bool inv = PreviewOverlapsBlockingCollider();
+        lastOverlapInvalid = inv;
+        ApplyPreviewVisuals(inv);
+    }
+
+    /// <summary>Returns true if preview footprint overlaps any collider we care about (blocked placement).</summary>
+    private bool PreviewOverlapsBlockingCollider()
+    {
+        if (spawnPreview == null || !TryGetFootprintBounds(spawnPreview, out Bounds b))
+            return true;
+
+        Quaternion rot = spawnPreview.transform.rotation;
+        Collider[] hits = Physics.OverlapBox(b.center, b.extents, rot, ~0, QueryTriggerInteraction.Ignore);
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider h = hits[i];
+            if (h == null) continue;
+            if (h.transform.IsChildOf(spawnPreview.transform)) continue;
+            if (h.CompareTag("Player")) continue;
+            if (((1 << h.gameObject.layer) & overlapIgnoreLayers.value) != 0) continue;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryGetFootprintBounds(GameObject root, out Bounds bounds)
+    {
+        bounds = default;
+        BoxCollider[] boxes = root.GetComponentsInChildren<BoxCollider>(true);
+        if (boxes.Length > 0)
+        {
+            bounds = boxes[0].bounds;
+            for (int j = 1; j < boxes.Length; j++)
+                bounds.Encapsulate(boxes[j].bounds);
+            return true;
+        }
+
+        Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+        if (renderers.Length == 0)
+            return false;
+        bounds = renderers[0].bounds;
+        for (int j = 1; j < renderers.Length; j++)
+            bounds.Encapsulate(renderers[j].bounds);
+        return true;
+    }
+
+    private void ApplyPreviewVisuals(bool invalid)
+    {
+        if (previewRenderers == null) return;
+
+        if (invalid)
+        {
+            if (invalidPreviewMaterial != null)
+            {
+                foreach (var r in previewRenderers)
+                {
+                    if (r != null) r.sharedMaterial = invalidPreviewMaterial;
+                }
+            }
+            return;
+        }
+
+        if (previewMaterial != null)
+        {
+            foreach (var r in previewRenderers)
+            {
+                if (r != null) r.sharedMaterial = previewMaterial;
+            }
+        }
     }
 
     private void PoolInput()
@@ -71,25 +224,18 @@ public class BuildMode : MonoBehaviour
 
     private void ActivateBuildMode()
     {
+        if (spawnPreview == null) return;
         isActive = true;
         spawnPreview.SetActive(true);
+        bool inv = PreviewOverlapsBlockingCollider();
+        lastOverlapInvalid = inv;
+        ApplyPreviewVisuals(inv);
     }
 
     private void DisableBuildMode()
     {
         isActive = false;
-        spawnPreview.SetActive(false);
-    }
-
-    private void ApplyPreviewMaterial(GameObject previewObj)
-    {
-        if (previewMaterial == null || previewObj == null)
-            return;
-
-        // Apply to all renderers on the preview object (and children)
-        var renderers = previewObj.GetComponentsInChildren<Renderer>(true);
-        for (int i = 0; i < renderers.Length; i++)
-            renderers[i].material = previewMaterial;
-       
+        if (spawnPreview != null)
+            spawnPreview.SetActive(false);
     }
 }
