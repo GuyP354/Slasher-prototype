@@ -55,7 +55,7 @@ public class UIManager : MonoSingleton<UIManager>, IGameUI
 
     private void ApplyWaveTextStyle(TextMeshProUGUI tmp)
     {
-        if (tmp == null || tmp.fontAsset == null)
+        if (tmp == null || tmp.font == null)
             return;
 
         if (useMobileDistanceFieldForWaveText)
@@ -66,12 +66,12 @@ public class UIManager : MonoSingleton<UIManager>, IGameUI
 
             if (mobile != null)
             {
-                int id = tmp.fontAsset.GetInstanceID();
+                int id = tmp.font.GetInstanceID();
                 if (!_waveFontMaterials.TryGetValue(id, out Material mat) || mat == null)
                 {
                     mat = new Material(mobile);
-                    mat.CopyPropertiesFromMaterial(tmp.fontAsset.material);
-                    mat.name = "WaveUI_" + tmp.fontAsset.name;
+                    mat.CopyPropertiesFromMaterial(tmp.font.material);
+                    mat.name = "WaveUI_" + tmp.font.name;
                     _waveFontMaterials[id] = mat;
                 }
 
