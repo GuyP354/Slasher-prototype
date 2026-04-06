@@ -17,6 +17,11 @@ public class BuildMode : MonoBehaviour
     [Tooltip("Hits on these layers are ignored (e.g. Ground / Terrain) so the preview can sit on the floor.")]
     [SerializeField] private LayerMask overlapIgnoreLayers;
 
+    [Header("Auto-snap when overlapping")]
+    [Tooltip("If the default preview spot overlaps, search this far on the ground (XZ) for a valid position.")]
+    [SerializeField] private float validPlacementSearchMaxRadius = 10f;
+    [SerializeField] private float validPlacementSearchStep = 0.5f;
+
     private GameObject spawnPreview;
     private Vector3 previewDirection = Vector3.left;
     private bool isActive;
@@ -58,6 +63,7 @@ public class BuildMode : MonoBehaviour
             return;
 
         MoveSpawnPreview();
+        SnapPreviewToValidNearbyIfOverlapping();
         UpdatePreviewDirectionInput();
 
         bool invalid = PreviewOverlapsBlockingCollider();
@@ -99,6 +105,46 @@ public class BuildMode : MonoBehaviour
         spawnPreview.transform.position = previewPosition;
     }
 
+    /// <summary>If the default build spot overlaps blockers, slide the preview on XZ to the nearest valid position.</summary>
+    private void SnapPreviewToValidNearbyIfOverlapping()
+    {
+        if (spawnPreview == null) return;
+        if (!PreviewOverlapsBlockingCollider())
+            return;
+
+        Vector3 basePos = spawnPreview.transform.position;
+        Quaternion rot = spawnPreview.transform.rotation;
+
+        float step = Mathf.Max(0.1f, validPlacementSearchStep);
+        float maxR = Mathf.Max(step, validPlacementSearchMaxRadius);
+
+        for (float r = step; r <= maxR; r += step)
+        {
+            int segments = Mathf.Max(8, Mathf.CeilToInt((2f * Mathf.PI * r) / step));
+            for (int i = 0; i < segments; i++)
+            {
+                float ang = (i / (float)segments) * Mathf.PI * 2f;
+                Vector3 offset = new Vector3(Mathf.Cos(ang), 0f, Mathf.Sin(ang)) * r;
+                Vector3 test = basePos + offset;
+                if (IsValidPlacementAt(test, rot))
+                {
+                    spawnPreview.transform.position = test;
+                    return;
+                }
+            }
+        }
+    }
+
+    private bool IsValidPlacementAt(Vector3 position, Quaternion rotation)
+    {
+        Vector3 prevPos = spawnPreview.transform.position;
+        Quaternion prevRot = spawnPreview.transform.rotation;
+        spawnPreview.transform.SetPositionAndRotation(position, rotation);
+        bool blocked = PreviewOverlapsBlockingCollider();
+        spawnPreview.transform.SetPositionAndRotation(prevPos, prevRot);
+        return !blocked;
+    }
+
     private void CyclePrefab(int delta)
     {
         if (defencePrefabs == null || defencePrefabs.Count == 0) return;
@@ -138,6 +184,7 @@ public class BuildMode : MonoBehaviour
         spawnPreview.SetActive(isActive);
 
         MoveSpawnPreview();
+        SnapPreviewToValidNearbyIfOverlapping();
         bool inv = PreviewOverlapsBlockingCollider();
         lastOverlapInvalid = inv;
         ApplyPreviewVisuals(inv);
