@@ -4,18 +4,19 @@ using System.Collections.Generic;
 public class BuildMode : MonoBehaviour
 {
     private const float PREVIEW_DISTANCE_FROM_PLAYER = 3.0f;
-    private const string UnplaceableTag = "Unplaceable";
+
+    public const string RangerAreaTag = "RangerArea";
+    public const string UnplaceableTag = "Unplaceable";
+    public const string ObstacleTag = "Obstacle";
 
     public List<GameObject> defencePrefabs;
 
     [Header("Preview materials")]
-    [Tooltip("Material when placement is valid.")]
+    [Tooltip("Material applied to preview renderers while building.")]
     public Material previewMaterial;
-    [Tooltip("Material when preview overlaps something (e.g. red).")]
-    public Material invalidPreviewMaterial;
 
     [Header("Placement overlap")]
-    [Tooltip("Hits on these layers are ignored (e.g. Ground / Terrain) so the preview can sit on the floor. Objects tagged Unplaceable always block, even on these layers.")]
+    [Tooltip("Ignored layers apply to normal solid geometry (e.g. ground). Tagged volumes: RangerArea — only prefabs with RangerDefence may be placed (Space). Unplaceable — prefabs tagged Obstacle cannot be placed. Use colliders with those tags, or PlacementRestrictionZone (no collider) with the same tags.")]
     [SerializeField] private LayerMask overlapIgnoreLayers;
 
     [Header("Defence spacing")]
@@ -37,7 +38,6 @@ public class BuildMode : MonoBehaviour
     private bool isActive;
     private int prefabIndex;
     private Renderer[] previewRenderers;
-    private bool lastOverlapInvalid = true;
 
     private void Start()
     {
@@ -75,13 +75,6 @@ public class BuildMode : MonoBehaviour
         MoveSpawnPreview();
         SnapPreviewToValidNearbyIfOverlapping();
         UpdatePreviewDirectionInput();
-
-        bool invalid = IsPlacementInvalid();
-        if (invalid != lastOverlapInvalid)
-        {
-            lastOverlapInvalid = invalid;
-            ApplyPreviewVisuals(invalid);
-        }
     }
 
     private void UpdatePreviewDirectionInput()
@@ -198,9 +191,7 @@ public class BuildMode : MonoBehaviour
 
         MoveSpawnPreview();
         SnapPreviewToValidNearbyIfOverlapping();
-        bool inv = IsPlacementInvalid();
-        lastOverlapInvalid = inv;
-        ApplyPreviewVisuals(inv);
+        ApplyPreviewMaterial();
     }
 
     private int GetBloodCostForCurrentPrefab()
@@ -218,17 +209,11 @@ public class BuildMode : MonoBehaviour
         return BloodInventory.Instance.CurrentBlood >= cost;
     }
 
-    /// <summary>True when overlap / too close to defences, unaffordable blood cost, or no inventory.</summary>
-    private bool IsPlacementInvalid()
-    {
-        if (PreviewPlacementBlocked()) return true;
-        return !CanAffordCurrentDefence();
-    }
-
-    /// <summary>Physics overlap with world, or too close to an existing placed defence.</summary>
+    /// <summary>Physics overlap with world, placement zones, or too close to an existing placed defence.</summary>
     private bool PreviewPlacementBlocked()
     {
         if (PreviewOverlapsBlockingCollider()) return true;
+        if (PreviewOverlapsPlacementZones()) return true;
         return ViolatesDefenceSeparation();
     }
 
@@ -239,7 +224,9 @@ public class BuildMode : MonoBehaviour
             return true;
 
         Quaternion rot = spawnPreview.transform.rotation;
-        Collider[] hits = Physics.OverlapBox(b.center, b.extents, rot, ~0, QueryTriggerInteraction.Ignore);
+        Collider[] hits = Physics.OverlapBox(b.center, b.extents, rot, ~0, QueryTriggerInteraction.Collide);
+
+        bool rangerPrefab = CurrentPrefabHasRangerDefence();
 
         for (int i = 0; i < hits.Length; i++)
         {
@@ -247,12 +234,101 @@ public class BuildMode : MonoBehaviour
             if (h == null) continue;
             if (h.transform.IsChildOf(spawnPreview.transform)) continue;
             if (h.CompareTag("Player")) continue;
+
             bool onIgnoredLayer = ((1 << h.gameObject.layer) & overlapIgnoreLayers.value) != 0;
-            if (onIgnoredLayer && !h.CompareTag(UnplaceableTag)) continue;
+
+            if (TransformHasTag(h.transform, RangerAreaTag))
+            {
+                if (!rangerPrefab)
+                    return true;
+                continue;
+            }
+
+            if (TransformHasTag(h.transform, UnplaceableTag))
+            {
+                if (CurrentPrefabHasObstacleTag())
+                    return true;
+                continue;
+            }
+
+            if (h.isTrigger)
+                continue;
+
+            if (onIgnoredLayer)
+                continue;
+
             return true;
         }
 
         return false;
+    }
+
+    /// <summary>Tag may be on a parent while the collider is on a child.</summary>
+    private static bool TransformHasTag(Transform t, string tag)
+    {
+        while (t != null)
+        {
+            if (t.CompareTag(tag)) return true;
+            t = t.parent;
+        }
+        return false;
+    }
+
+    /// <summary>Build footprint intersects a tagged <see cref="PlacementRestrictionZone"/> (no collider on the zone).</summary>
+    private bool PreviewOverlapsPlacementZones()
+    {
+        if (spawnPreview == null || !TryGetFootprintBounds(spawnPreview, out Bounds candidateBounds))
+            return true;
+
+        bool rangerPrefab = CurrentPrefabHasRangerDefence();
+
+        PlacementRestrictionZone[] zones = FindObjectsByType<PlacementRestrictionZone>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        for (int i = 0; i < zones.Length; i++)
+        {
+            PlacementRestrictionZone z = zones[i];
+            if (z == null || !z.isActiveAndEnabled) continue;
+            if (!candidateBounds.Intersects(z.GetWorldBounds())) continue;
+
+            if (TransformHasTag(z.transform, RangerAreaTag))
+            {
+                if (!rangerPrefab)
+                    return true;
+                continue;
+            }
+
+            if (TransformHasTag(z.transform, UnplaceableTag))
+            {
+                if (CurrentPrefabHasObstacleTag())
+                    return true;
+                continue;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>True when the selected prefab or any child is tagged Obstacle (blocked in Unplaceable zones).</summary>
+    private bool CurrentPrefabHasObstacleTag()
+    {
+        if (defencePrefabs == null || prefabIndex < 0 || prefabIndex >= defencePrefabs.Count)
+            return false;
+        GameObject p = defencePrefabs[prefabIndex];
+        if (p == null) return false;
+        foreach (Transform t in p.GetComponentsInChildren<Transform>(true))
+        {
+            if (t != null && t.CompareTag(ObstacleTag))
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>True when the selected defence prefab has a RangerDefence (allowed inside RangerArea).</summary>
+    private bool CurrentPrefabHasRangerDefence()
+    {
+        if (defencePrefabs == null || prefabIndex < 0 || prefabIndex >= defencePrefabs.Count)
+            return false;
+        GameObject p = defencePrefabs[prefabIndex];
+        return p != null && p.GetComponentInChildren<RangerDefence>(true) != null;
     }
 
     private bool ViolatesDefenceSeparation()
@@ -321,28 +397,12 @@ public class BuildMode : MonoBehaviour
         return true;
     }
 
-    private void ApplyPreviewVisuals(bool invalid)
+    private void ApplyPreviewMaterial()
     {
-        if (previewRenderers == null) return;
-
-        if (invalid)
+        if (previewRenderers == null || previewMaterial == null) return;
+        foreach (var r in previewRenderers)
         {
-            if (invalidPreviewMaterial != null)
-            {
-                foreach (var r in previewRenderers)
-                {
-                    if (r != null) r.sharedMaterial = invalidPreviewMaterial;
-                }
-            }
-            return;
-        }
-
-        if (previewMaterial != null)
-        {
-            foreach (var r in previewRenderers)
-            {
-                if (r != null) r.sharedMaterial = previewMaterial;
-            }
+            if (r != null) r.sharedMaterial = previewMaterial;
         }
     }
 
@@ -362,9 +422,7 @@ public class BuildMode : MonoBehaviour
         if (spawnPreview == null) return;
         isActive = true;
         spawnPreview.SetActive(true);
-        bool inv = IsPlacementInvalid();
-        lastOverlapInvalid = inv;
-        ApplyPreviewVisuals(inv);
+        ApplyPreviewMaterial();
     }
 
     private void DisableBuildMode()

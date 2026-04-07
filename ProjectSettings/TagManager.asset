@@ -9,6 +9,7 @@ TagManager:
   - Obstacle
   - Ground
   - Unplaceable
+  - RangerArea
   layers:
   - Default
   - TransparentFX
