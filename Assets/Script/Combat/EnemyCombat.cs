@@ -18,12 +18,17 @@ public partial class EnemyCombat : MonoBehaviour
     [SerializeField] private float attacksPerSecond = 1.0f;
     [SerializeField] private int damagePerHit = 10;
 
+    [Header("Loot")]
+    [SerializeField] private GameObject bloodResourcePrefab;
+    [SerializeField] private Vector3 bloodDropOffset;
+
     private NavMeshAgent agent;
     private Transform objective;
     private Transform currentObstacle;
 
     private float nextScanTime;
     private float nextAttackTime;
+    private Health health;
 
     // Non-alloc scan buffer (increase if you expect many obstacles clustered)
     private readonly Collider[] hits = new Collider[24];
@@ -31,6 +36,26 @@ public partial class EnemyCombat : MonoBehaviour
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
+        health = GetComponent<Health>();
+    }
+
+    private void OnEnable()
+    {
+        if (health != null)
+            health.OnDeath += DropBloodOnDeath;
+    }
+
+    private void OnDisable()
+    {
+        if (health != null)
+            health.OnDeath -= DropBloodOnDeath;
+    }
+
+    private void DropBloodOnDeath()
+    {
+        if (bloodResourcePrefab == null) return;
+        Vector3 pos = transform.position + bloodDropOffset;
+        Instantiate(bloodResourcePrefab, pos, Quaternion.identity);
     }
 
     private void Start()

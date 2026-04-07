@@ -13,10 +13,9 @@ GameObject:
   - component: {fileID: 8004048036369286237}
   - component: {fileID: 6158299099685096931}
   - component: {fileID: 9094864237966596065}
-  - component: {fileID: 1770645958127658618}
   - component: {fileID: 6398004058733578796}
   m_Layer: 0
-  m_Name: Defence
+  m_Name: Ranger
   m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -70,7 +69,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: -876546973899608171, guid: 80aa867ac363ac043847b06ad71604cd, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -130,23 +129,6 @@ MonoBehaviour:
   onDeath:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &1770645958127658618
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2697319863502541222}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fee13da67b3231c42ae249e4f4788cdf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ObstacleDefense
-  enemyTag: Enemy
-  attackRange: 2.12
-  attacksPerSecond: 1
-  damagePerHit: 10
-  minSeparationFromOtherDefences: 356.4
 --- !u!54 &6398004058733578796
 Rigidbody:
   m_ObjectHideFlags: 0

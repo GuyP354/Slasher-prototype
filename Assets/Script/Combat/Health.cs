@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -5,8 +6,10 @@ public class Health : MonoBehaviour
 {
     [SerializeField] private int maxHealth = 50;
     private int current;
-    
+
     [SerializeField] private UnityEvent onDeath;
+
+    public event Action OnDeath;
 
     private void Awake()
     {
@@ -22,6 +25,7 @@ public class Health : MonoBehaviour
         current -= amount;
         if (current <= 0)
         {
+            OnDeath?.Invoke();
             onDeath?.Invoke();
             Destroy(gameObject);
         }

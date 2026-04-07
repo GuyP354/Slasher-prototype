@@ -137,6 +137,8 @@ MonoBehaviour:
   attackRange: 3
   attacksPerSecond: 0.7
   damagePerHit: 10
+  bloodResourcePrefab: {fileID: 5846917147889590866, guid: a94696a1ecb6240409200430d5c19be0, type: 3}
+  bloodDropOffset: {x: 0, y: 2, z: 0}
 --- !u!195 &-922447648415065678
 NavMeshAgent:
   m_ObjectHideFlags: 0

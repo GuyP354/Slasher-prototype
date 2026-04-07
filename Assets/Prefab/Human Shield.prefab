@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 1770645958127658618}
   - component: {fileID: 6398004058733578796}
   m_Layer: 0
-  m_Name: Defence 1
+  m_Name: Human Shield
   m_TagString: Obstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

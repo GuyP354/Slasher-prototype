@@ -22,6 +22,11 @@ public class BuildMode : MonoBehaviour
     [SerializeField] private float validPlacementSearchMaxRadius = 10f;
     [SerializeField] private float validPlacementSearchStep = 0.5f;
 
+    [Header("Blood cost (same order as defence prefabs)")]
+    [Tooltip("Blood spent when placing each defence. Index matches defencePrefabs. If missing, defaultBloodCost is used.")]
+    [SerializeField] private List<int> defenceBloodCosts = new List<int>();
+    [SerializeField] private int defaultBloodCost = 1;
+
     private GameObject spawnPreview;
     private Vector3 previewDirection = Vector3.left;
     private bool isActive;
@@ -66,7 +71,7 @@ public class BuildMode : MonoBehaviour
         SnapPreviewToValidNearbyIfOverlapping();
         UpdatePreviewDirectionInput();
 
-        bool invalid = PreviewOverlapsBlockingCollider();
+        bool invalid = IsPlacementInvalid();
         if (invalid != lastOverlapInvalid)
         {
             lastOverlapInvalid = invalid;
@@ -93,6 +98,9 @@ public class BuildMode : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             if (PreviewOverlapsBlockingCollider())
+                return;
+            int cost = GetBloodCostForCurrentPrefab();
+            if (BloodInventory.Instance == null || !BloodInventory.Instance.TrySpendBlood(cost))
                 return;
             if (defencePrefabs != null && prefabIndex >= 0 && prefabIndex < defencePrefabs.Count && defencePrefabs[prefabIndex] != null)
                 Instantiate(defencePrefabs[prefabIndex], spawnPreview.transform.position, spawnPreview.transform.rotation);
@@ -185,9 +193,31 @@ public class BuildMode : MonoBehaviour
 
         MoveSpawnPreview();
         SnapPreviewToValidNearbyIfOverlapping();
-        bool inv = PreviewOverlapsBlockingCollider();
+        bool inv = IsPlacementInvalid();
         lastOverlapInvalid = inv;
         ApplyPreviewVisuals(inv);
+    }
+
+    private int GetBloodCostForCurrentPrefab()
+    {
+        if (defenceBloodCosts != null && prefabIndex >= 0 && prefabIndex < defenceBloodCosts.Count)
+            return Mathf.Max(0, defenceBloodCosts[prefabIndex]);
+        return Mathf.Max(0, defaultBloodCost);
+    }
+
+    private bool CanAffordCurrentDefence()
+    {
+        int cost = GetBloodCostForCurrentPrefab();
+        if (cost <= 0) return true;
+        if (BloodInventory.Instance == null) return false;
+        return BloodInventory.Instance.CurrentBlood >= cost;
+    }
+
+    /// <summary>True when overlap, unaffordable blood cost, or no inventory.</summary>
+    private bool IsPlacementInvalid()
+    {
+        if (PreviewOverlapsBlockingCollider()) return true;
+        return !CanAffordCurrentDefence();
     }
 
     /// <summary>Returns true if preview footprint overlaps any collider we care about (blocked placement).</summary>
@@ -274,7 +304,7 @@ public class BuildMode : MonoBehaviour
         if (spawnPreview == null) return;
         isActive = true;
         spawnPreview.SetActive(true);
-        bool inv = PreviewOverlapsBlockingCollider();
+        bool inv = IsPlacementInvalid();
         lastOverlapInvalid = inv;
         ApplyPreviewVisuals(inv);
     }
