@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6158299099685096931}
   - component: {fileID: 9094864237966596065}
   - component: {fileID: 6398004058733578796}
+  - component: {fileID: 2723825157939092345}
   m_Layer: 0
   m_Name: Ranger
   m_TagString: Obstacle
@@ -156,3 +157,22 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &2723825157939092345
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2697319863502541222}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2be3eb582fd4fd2478113a75dfaf177c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RangerDefence
+  enemyTag: Enemy
+  attackRange: 8
+  attacksPerSecond: 1
+  damagePerHit: 10
+  overlapLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
