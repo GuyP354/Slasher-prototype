@@ -8,6 +8,7 @@ TagManager:
   - Enemy
   - Obstacle
   - Ground
+  - Unplaceable
   layers:
   - Default
   - TransparentFX

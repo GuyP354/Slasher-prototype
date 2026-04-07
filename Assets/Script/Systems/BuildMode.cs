@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public class BuildMode : MonoBehaviour
 {
     private const float PREVIEW_DISTANCE_FROM_PLAYER = 3.0f;
+    private const string UnplaceableTag = "Unplaceable";
 
     public List<GameObject> defencePrefabs;
 
@@ -14,8 +15,12 @@ public class BuildMode : MonoBehaviour
     public Material invalidPreviewMaterial;
 
     [Header("Placement overlap")]
-    [Tooltip("Hits on these layers are ignored (e.g. Ground / Terrain) so the preview can sit on the floor.")]
+    [Tooltip("Hits on these layers are ignored (e.g. Ground / Terrain) so the preview can sit on the floor. Objects tagged Unplaceable always block, even on these layers.")]
     [SerializeField] private LayerMask overlapIgnoreLayers;
+
+    [Header("Defence spacing")]
+    [Tooltip("Minimum gap between this preview and any placed defence (center footprint + padding). Preview snaps sideways until valid.")]
+    [SerializeField] private float minSeparationBetweenDefences = 8f;
 
     [Header("Auto-snap when overlapping")]
     [Tooltip("If the default preview spot overlaps, search this far on the ground (XZ) for a valid position.")]
@@ -97,7 +102,7 @@ public class BuildMode : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (PreviewOverlapsBlockingCollider())
+            if (PreviewPlacementBlocked())
                 return;
             int cost = GetBloodCostForCurrentPrefab();
             if (BloodInventory.Instance == null || !BloodInventory.Instance.TrySpendBlood(cost))
@@ -113,11 +118,11 @@ public class BuildMode : MonoBehaviour
         spawnPreview.transform.position = previewPosition;
     }
 
-    /// <summary>If the default build spot overlaps blockers, slide the preview on XZ to the nearest valid position.</summary>
+    /// <summary>If the default build spot overlaps blockers or is too close to another defence, slide the preview on XZ.</summary>
     private void SnapPreviewToValidNearbyIfOverlapping()
     {
         if (spawnPreview == null) return;
-        if (!PreviewOverlapsBlockingCollider())
+        if (!PreviewPlacementBlocked())
             return;
 
         Vector3 basePos = spawnPreview.transform.position;
@@ -148,7 +153,7 @@ public class BuildMode : MonoBehaviour
         Vector3 prevPos = spawnPreview.transform.position;
         Quaternion prevRot = spawnPreview.transform.rotation;
         spawnPreview.transform.SetPositionAndRotation(position, rotation);
-        bool blocked = PreviewOverlapsBlockingCollider();
+        bool blocked = PreviewPlacementBlocked();
         spawnPreview.transform.SetPositionAndRotation(prevPos, prevRot);
         return !blocked;
     }
@@ -213,11 +218,18 @@ public class BuildMode : MonoBehaviour
         return BloodInventory.Instance.CurrentBlood >= cost;
     }
 
-    /// <summary>True when overlap, unaffordable blood cost, or no inventory.</summary>
+    /// <summary>True when overlap / too close to defences, unaffordable blood cost, or no inventory.</summary>
     private bool IsPlacementInvalid()
     {
-        if (PreviewOverlapsBlockingCollider()) return true;
+        if (PreviewPlacementBlocked()) return true;
         return !CanAffordCurrentDefence();
+    }
+
+    /// <summary>Physics overlap with world, or too close to an existing placed defence.</summary>
+    private bool PreviewPlacementBlocked()
+    {
+        if (PreviewOverlapsBlockingCollider()) return true;
+        return ViolatesDefenceSeparation();
     }
 
     /// <summary>Returns true if preview footprint overlaps any collider we care about (blocked placement).</summary>
@@ -235,11 +247,57 @@ public class BuildMode : MonoBehaviour
             if (h == null) continue;
             if (h.transform.IsChildOf(spawnPreview.transform)) continue;
             if (h.CompareTag("Player")) continue;
-            if (((1 << h.gameObject.layer) & overlapIgnoreLayers.value) != 0) continue;
+            bool onIgnoredLayer = ((1 << h.gameObject.layer) & overlapIgnoreLayers.value) != 0;
+            if (onIgnoredLayer && !h.CompareTag(UnplaceableTag)) continue;
             return true;
         }
 
         return false;
+    }
+
+    private bool ViolatesDefenceSeparation()
+    {
+        if (spawnPreview == null || !TryGetFootprintBounds(spawnPreview, out Bounds candidateBounds))
+            return true;
+
+        float pad = Mathf.Max(0f, minSeparationBetweenDefences);
+
+        ObstacleDefense[] obstacles = FindObjectsOfType<ObstacleDefense>();
+        for (int i = 0; i < obstacles.Length; i++)
+        {
+            ObstacleDefense od = obstacles[i];
+            if (od == null) continue;
+            if (IsPartOfSpawnPreview(od.transform)) continue;
+            if (!TryGetFootprintBounds(od.gameObject, out Bounds other)) continue;
+            if (BoundsTooClose(candidateBounds, other, pad)) return true;
+        }
+
+        RangerDefence[] rangers = FindObjectsOfType<RangerDefence>();
+        for (int i = 0; i < rangers.Length; i++)
+        {
+            RangerDefence rd = rangers[i];
+            if (rd == null) continue;
+            if (IsPartOfSpawnPreview(rd.transform)) continue;
+            if (!TryGetFootprintBounds(rd.gameObject, out Bounds other)) continue;
+            if (BoundsTooClose(candidateBounds, other, pad)) return true;
+        }
+
+        return false;
+    }
+
+    private bool IsPartOfSpawnPreview(Transform t)
+    {
+        if (spawnPreview == null || t == null) return false;
+        if (t == spawnPreview.transform) return true;
+        return t.IsChildOf(spawnPreview.transform);
+    }
+
+    /// <summary>True if candidate intersects other footprint expanded by min gap (keeps defences side-by-side with space).</summary>
+    private static bool BoundsTooClose(Bounds candidate, Bounds other, float minSeparation)
+    {
+        Vector3 ext = other.extents + Vector3.one * (minSeparation * 0.5f);
+        Bounds expanded = new Bounds(other.center, ext * 2f);
+        return candidate.Intersects(expanded);
     }
 
     private static bool TryGetFootprintBounds(GameObject root, out Bounds bounds)

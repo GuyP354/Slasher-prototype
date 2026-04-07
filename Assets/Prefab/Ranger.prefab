@@ -170,9 +170,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RangerDefence
   enemyTag: Enemy
-  attackRange: 8
-  attacksPerSecond: 1
-  damagePerHit: 10
+  attackRange: 30
+  attacksPerSecond: 0.8
+  damagePerHit: 40
   overlapLayers:
     serializedVersion: 2
     m_Bits: 4294967295
