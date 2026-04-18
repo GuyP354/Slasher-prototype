@@ -68,6 +68,8 @@ public class BuildMode : MonoBehaviour
 
     private void Update()
     {
+        if (GamePauseMenu.IsPaused)
+            return;
         PoolInput();
         if (!isActive || spawnPreview == null)
             return;
