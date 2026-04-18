@@ -1,11 +1,15 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 
 /// <summary>
-/// Escape: open options + pause / close + resume. Arrow keys move focus (slider → back → main menu).
-/// Left/Right adjusts slider. Space activates focused back (resume) or main menu (load scene).
+/// Escape: open options + pause / close + resume. Arrow keys / WASD change focus.
+/// EventSystem + Selectable Color Tint drive Highlighted (mouse hover) and Selected (keyboard/gamepad focus).
+/// MenuFocusRelay syncs mouse position with keyboard focus index so they don't fight each other.
 /// </summary>
+[DefaultExecutionOrder(-200)]
 public class GamePauseMenu : MonoBehaviour
 {
     public static bool IsPaused { get; private set; }
@@ -23,14 +27,12 @@ public class GamePauseMenu : MonoBehaviour
     [SerializeField] private float sliderKeyboardStep = 0.02f;
 
     private int _focusIndex;
-    private Graphic _sliderGraphic;
-    private Graphic _backGraphic;
-    private Graphic _mainGraphic;
 
     private void Awake()
     {
         ResolveReferences();
-        CacheGraphics();
+        ConfigureMenuSelectables();
+        RegisterPointerFocusRelays();
 
         if (volumeSlider != null)
         {
@@ -64,7 +66,7 @@ public class GamePauseMenu : MonoBehaviour
     {
         if (optionsMenuRoot == null)
         {
-            var t = transform.Find("Options Menu");
+            Transform t = transform.Find("Options Menu");
             if (t != null) optionsMenuRoot = t.gameObject;
         }
 
@@ -78,14 +80,54 @@ public class GamePauseMenu : MonoBehaviour
             mainMenuButton = optionsMenuRoot.transform.Find("Main Menu Button")?.GetComponent<Button>();
     }
 
-    private void CacheGraphics()
+    /// <summary>Keyboard/gamepad only — no automatic UI navigation stealing arrow keys.</summary>
+    private void ConfigureMenuSelectables()
     {
-        if (volumeSlider != null && volumeSlider.targetGraphic != null)
-            _sliderGraphic = volumeSlider.targetGraphic;
-        if (backButton != null && backButton.targetGraphic != null)
-            _backGraphic = backButton.targetGraphic;
-        if (mainMenuButton != null && mainMenuButton.targetGraphic != null)
-            _mainGraphic = mainMenuButton.targetGraphic;
+        var none = new Navigation { mode = Navigation.Mode.None };
+        if (volumeSlider != null) volumeSlider.navigation = none;
+        if (backButton != null) backButton.navigation = none;
+        if (mainMenuButton != null) mainMenuButton.navigation = none;
+    }
+
+    /// <summary>
+    /// Pointer hover/press on any raycast target for that row updates focus so EventSystem colors match the mouse.
+    /// </summary>
+    public void NotifyPointerFocus(int index)
+    {
+        if (!IsPaused || optionsMenuRoot == null || !optionsMenuRoot.activeSelf) return;
+        _focusIndex = index;
+        ApplyUISelection();
+    }
+
+    private void RegisterPointerFocusRelays()
+    {
+        RegisterRelayChain(volumeSlider != null ? volumeSlider.gameObject : null, 0);
+        RegisterRelayChain(backButton != null ? backButton.gameObject : null, 1);
+        RegisterRelayChain(mainMenuButton != null ? mainMenuButton.gameObject : null, 2);
+    }
+
+    private void RegisterRelayChain(GameObject root, int index)
+    {
+        if (root == null) return;
+
+        foreach (Graphic g in root.GetComponentsInChildren<Graphic>(true))
+        {
+            if (g == null || !g.raycastTarget) continue;
+            AddRelay(g.gameObject, index);
+        }
+    }
+
+    private void AddRelay(GameObject go, int index)
+    {
+        var existing = go.GetComponents<MenuFocusRelay>();
+        foreach (MenuFocusRelay r in existing)
+        {
+            if (r != null && r.Matches(index))
+                return;
+        }
+
+        MenuFocusRelay relay = go.AddComponent<MenuFocusRelay>();
+        relay.Init(this, index);
     }
 
     private void OnVolumeChanged(float v)
@@ -98,7 +140,7 @@ public class GamePauseMenu : MonoBehaviour
     {
         if (optionsMenuRoot == null) return;
 
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (MenuEscapePressed())
         {
             if (optionsMenuRoot.activeSelf)
                 ResumeGame();
@@ -109,36 +151,115 @@ public class GamePauseMenu : MonoBehaviour
 
         if (!optionsMenuRoot.activeSelf) return;
 
-        if (Input.GetKeyDown(KeyCode.DownArrow))
+        if (MenuNavigateDownPressed())
         {
             _focusIndex = (_focusIndex + 1) % 3;
-            RefreshFocusVisuals();
+            ApplyUISelection();
         }
-        else if (Input.GetKeyDown(KeyCode.UpArrow))
+        else if (MenuNavigateUpPressed())
         {
             _focusIndex = (_focusIndex + 2) % 3;
-            RefreshFocusVisuals();
+            ApplyUISelection();
         }
 
         if (_focusIndex == 0 && volumeSlider != null)
         {
             float v = volumeSlider.value;
-            if (Input.GetKey(KeyCode.LeftArrow))
+            if (MenuSliderLeftHeld())
                 v -= sliderKeyboardStep;
-            if (Input.GetKey(KeyCode.RightArrow))
+            if (MenuSliderRightHeld())
                 v += sliderKeyboardStep;
             v = Mathf.Clamp01(v);
             if (!Mathf.Approximately(v, volumeSlider.value))
                 volumeSlider.value = v;
         }
+    }
 
-        if (Input.GetKeyDown(KeyCode.Space))
+    private void ApplyUISelection()
+    {
+        EventSystem es = EventSystem.current;
+        if (es == null) return;
+
+        GameObject go = GetFocusedGameObject();
+        if (go != null)
+            es.SetSelectedGameObject(go);
+    }
+
+    private GameObject GetFocusedGameObject()
+    {
+        switch (_focusIndex)
         {
-            if (_focusIndex == 1)
-                ResumeGame();
-            else if (_focusIndex == 2)
-                GoToMainMenu();
+            case 0: return volumeSlider != null ? volumeSlider.gameObject : null;
+            case 1: return backButton != null ? backButton.gameObject : null;
+            case 2: return mainMenuButton != null ? mainMenuButton.gameObject : null;
+            default: return null;
         }
+    }
+
+    private static void ClearUISelection()
+    {
+        if (EventSystem.current != null)
+            EventSystem.current.SetSelectedGameObject(null);
+    }
+
+    private static bool HasKeyboard()
+    {
+        return Keyboard.current != null;
+    }
+
+    private static bool MenuEscapePressed()
+    {
+        if (HasKeyboard() && Keyboard.current.escapeKey.wasPressedThisFrame)
+            return true;
+        return Input.GetKeyDown(KeyCode.Escape);
+    }
+
+    private static bool MenuNavigateUpPressed()
+    {
+        if (HasKeyboard())
+        {
+            var k = Keyboard.current;
+            if (k.upArrowKey.wasPressedThisFrame || k.wKey.wasPressedThisFrame)
+                return true;
+        }
+
+        return Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W);
+    }
+
+    private static bool MenuNavigateDownPressed()
+    {
+        if (HasKeyboard())
+        {
+            var k = Keyboard.current;
+            if (k.downArrowKey.wasPressedThisFrame || k.sKey.wasPressedThisFrame)
+                return true;
+        }
+
+        return Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S);
+    }
+
+    private static bool MenuSliderLeftHeld()
+    {
+        if (HasKeyboard())
+        {
+            var k = Keyboard.current;
+            if (k.leftArrowKey.isPressed || k.aKey.isPressed)
+                return true;
+        }
+
+        return Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A);
+    }
+
+    private static bool MenuSliderRightHeld()
+    {
+        if (HasKeyboard())
+        {
+            var k = Keyboard.current;
+            if (k.rightArrowKey.isPressed || k.dKey.isPressed)
+                return true;
+        }
+
+        return Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D);
     }
 
     public void OpenMenu()
@@ -148,12 +269,13 @@ public class GamePauseMenu : MonoBehaviour
         Time.timeScale = 0f;
         IsPaused = true;
         _focusIndex = 0;
-        RefreshFocusVisuals();
+        ApplyUISelection();
     }
 
     public void ResumeGame()
     {
         if (optionsMenuRoot == null) return;
+        ClearUISelection();
         optionsMenuRoot.SetActive(false);
         Time.timeScale = 1f;
         IsPaused = false;
@@ -161,6 +283,7 @@ public class GamePauseMenu : MonoBehaviour
 
     public void GoToMainMenu()
     {
+        ClearUISelection();
         Time.timeScale = 1f;
         IsPaused = false;
         if (string.IsNullOrEmpty(mainMenuSceneName))
@@ -170,30 +293,5 @@ public class GamePauseMenu : MonoBehaviour
         }
 
         SceneManager.LoadScene(mainMenuSceneName);
-    }
-
-    private void RefreshFocusVisuals()
-    {
-        if (volumeSlider != null && _sliderGraphic != null)
-        {
-            ColorBlock c = volumeSlider.colors;
-            _sliderGraphic.color = _focusIndex == 0 ? c.highlightedColor : c.normalColor;
-        }
-
-        if (backButton != null && _backGraphic != null)
-        {
-            ColorBlock c = backButton.colors;
-            _backGraphic.color = _focusIndex == 1
-                ? c.highlightedColor
-                : Color.Lerp(c.normalColor, c.highlightedColor, 0.45f);
-        }
-
-        if (mainMenuButton != null && _mainGraphic != null)
-        {
-            ColorBlock c = mainMenuButton.colors;
-            _mainGraphic.color = _focusIndex == 2
-                ? c.highlightedColor
-                : Color.Lerp(c.normalColor, c.highlightedColor, 0.45f);
-        }
     }
 }
