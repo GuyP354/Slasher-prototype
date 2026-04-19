@@ -173,6 +173,9 @@ public class GamePauseMenu : MonoBehaviour
             if (!Mathf.Approximately(v, volumeSlider.value))
                 volumeSlider.value = v;
         }
+
+        if (MenuSubmitPressed())
+            SubmitCurrentSelection();
     }
 
     private void ApplyUISelection()
@@ -260,6 +263,29 @@ public class GamePauseMenu : MonoBehaviour
         }
 
         return Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D);
+    }
+
+    private static bool MenuSubmitPressed()
+    {
+        if (HasKeyboard())
+        {
+            var k = Keyboard.current;
+            if (k.spaceKey.wasPressedThisFrame)
+                return true;
+        }
+
+        return Input.GetKeyDown(KeyCode.Space);
+    }
+
+    private static void SubmitCurrentSelection()
+    {
+        EventSystem es = EventSystem.current;
+        if (es == null) return;
+
+        GameObject selected = es.currentSelectedGameObject;
+        if (selected == null) return;
+
+        ExecuteEvents.Execute(selected, new BaseEventData(es), ExecuteEvents.submitHandler);
     }
 
     public void OpenMenu()
