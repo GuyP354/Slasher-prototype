@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using TMPro;
 
 public class BuildMode : MonoBehaviour
 {
@@ -33,6 +34,18 @@ public class BuildMode : MonoBehaviour
     [SerializeField] private List<int> defenceBloodCosts = new List<int>();
     [SerializeField] private int defaultBloodCost = 1;
 
+    [Header("Preview text (same order as defence prefabs)")]
+    [Tooltip("Text shown above preview model only while in Build Mode. Index matches defencePrefabs.")]
+    [SerializeField] private List<string> defencePreviewTexts = new List<string>();
+    [Tooltip("Optional existing UI text to drive instead of creating a new preview label.")]
+    [SerializeField] private TextMeshProUGUI previewTextInterface;
+    [Tooltip("Optional second UI text box to mirror preview text.")]
+    [SerializeField] private TextMeshProUGUI previewTextInterfaceSecondary;
+    [Tooltip("Optional UI preview text template prefab with TextMeshProUGUI.")]
+    [SerializeField] private GameObject previewTextTemplate;
+    [SerializeField] private float previewTextSize = 2f;
+    [SerializeField] private Color previewTextColor = Color.white;
+
     [Header("Spawned defence heart UI")]
     [Tooltip("Optional UI prefab used for each heart icon.")]
     [SerializeField] private GameObject healthHeartIconPrefab;
@@ -55,6 +68,7 @@ public class BuildMode : MonoBehaviour
     private int prefabIndex;
     private Renderer[] previewRenderers;
     private bool previewWithinPlacementRange;
+    private TextMeshProUGUI previewCornerText;
 
     private void Start()
     {
@@ -94,6 +108,7 @@ public class BuildMode : MonoBehaviour
         MoveSpawnPreview();
         SnapPreviewToValidNearbyIfOverlapping();
         UpdatePreviewRangeVisibility();
+        UpdatePreviewCornerText();
         UpdatePreviewDirectionInput();
     }
 
@@ -266,6 +281,122 @@ public class BuildMode : MonoBehaviour
         SnapPreviewToValidNearbyIfOverlapping();
         UpdatePreviewRangeVisibility();
         ApplyPreviewMaterial();
+        UpdatePreviewCornerText();
+    }
+
+    private void UpdatePreviewCornerText()
+    {
+        string text = GetPreviewTextForCurrentPrefab();
+
+        if (previewTextInterface != null)
+        {
+            previewTextInterface.text = text;
+            previewTextInterface.gameObject.SetActive(isActive && !string.IsNullOrWhiteSpace(text));
+        }
+
+        if (previewTextInterfaceSecondary != null)
+        {
+            previewTextInterfaceSecondary.text = text;
+            previewTextInterfaceSecondary.gameObject.SetActive(isActive && !string.IsNullOrWhiteSpace(text));
+        }
+
+        if (previewTextInterface != null || previewTextInterfaceSecondary != null)
+        {
+            if (previewCornerText != null)
+                previewCornerText.gameObject.SetActive(false);
+            return;
+        }
+
+        if (!EnsurePreviewCornerText())
+            return;
+        previewCornerText.text = text;
+        previewCornerText.gameObject.SetActive(isActive && !string.IsNullOrWhiteSpace(text));
+    }
+
+    private string GetPreviewTextForCurrentPrefab()
+    {
+        // If no custom text is provided, default to cost text for the selected defence.
+        int cost = GetBloodCostForCurrentPrefab();
+
+        if (defencePreviewTexts == null)
+            return $"Defence Cost: {cost}";
+        if (prefabIndex < 0 || prefabIndex >= defencePreviewTexts.Count)
+            return $"Defence Cost: {cost}";
+
+        string text = defencePreviewTexts[prefabIndex];
+        if (string.IsNullOrWhiteSpace(text))
+            return $"Defence Cost: {cost}";
+        return text;
+    }
+
+    private string GetCurrentPrefabNameFallback()
+    {
+        if (defencePrefabs == null || prefabIndex < 0 || prefabIndex >= defencePrefabs.Count)
+            return "Build Preview";
+        GameObject prefab = defencePrefabs[prefabIndex];
+        if (prefab == null)
+            return "Build Preview";
+        return prefab.name;
+    }
+
+    private bool EnsurePreviewCornerText()
+    {
+        if (previewCornerText != null)
+            return true;
+
+        Canvas targetCanvas = null;
+        Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+        for (int i = 0; i < canvases.Length; i++)
+        {
+            Canvas c = canvases[i];
+            if (c == null || !c.isActiveAndEnabled) continue;
+            if (c.name == "UIRoot")
+            {
+                targetCanvas = c;
+                break;
+            }
+            if (targetCanvas == null &&
+                (c.renderMode == RenderMode.ScreenSpaceOverlay || c.renderMode == RenderMode.ScreenSpaceCamera))
+                targetCanvas = c;
+        }
+
+        if (targetCanvas == null)
+            return false;
+
+        if (previewTextTemplate != null)
+        {
+            GameObject templateInstance = Instantiate(previewTextTemplate, targetCanvas.transform);
+            previewCornerText = templateInstance.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (previewCornerText == null)
+            {
+                Destroy(templateInstance);
+                Debug.LogWarning("BuildMode: Preview Text Template has no TextMeshProUGUI. Falling back to default UI label.");
+                GameObject go = new GameObject("BuildPreviewCornerText", typeof(RectTransform));
+                go.transform.SetParent(targetCanvas.transform, false);
+                previewCornerText = go.AddComponent<TextMeshProUGUI>();
+                previewCornerText.color = previewTextColor;
+                previewCornerText.fontSize = Mathf.Max(1f, previewTextSize * 18f);
+                previewCornerText.alignment = TextAlignmentOptions.TopRight;
+            }
+        }
+        else
+        {
+            GameObject go = new GameObject("BuildPreviewCornerText", typeof(RectTransform));
+            go.transform.SetParent(targetCanvas.transform, false);
+            previewCornerText = go.AddComponent<TextMeshProUGUI>();
+            previewCornerText.color = previewTextColor;
+            previewCornerText.fontSize = Mathf.Max(1f, previewTextSize * 18f);
+            previewCornerText.alignment = TextAlignmentOptions.TopRight;
+        }
+
+        previewCornerText.name = "BuildPreviewCornerText";
+        RectTransform rt = previewCornerText.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(1f, 1f);
+        rt.anchorMax = new Vector2(1f, 1f);
+        rt.pivot = new Vector2(1f, 1f);
+        rt.anchoredPosition = new Vector2(-1200f, -260f);
+        rt.sizeDelta = new Vector2(600f, 120f);
+        return true;
     }
 
     private int GetBloodCostForCurrentPrefab()
@@ -496,6 +627,7 @@ public class BuildMode : MonoBehaviour
         isActive = true;
         UpdatePreviewRangeVisibility();
         ApplyPreviewMaterial();
+        UpdatePreviewCornerText();
     }
 
     private void DisableBuildMode()
@@ -503,5 +635,7 @@ public class BuildMode : MonoBehaviour
         isActive = false;
         if (spawnPreview != null)
             spawnPreview.SetActive(false);
+        if (previewCornerText != null)
+            previewCornerText.gameObject.SetActive(false);
     }
 }

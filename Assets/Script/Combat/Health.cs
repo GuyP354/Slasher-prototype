@@ -32,7 +32,12 @@ public class Health : MonoBehaviour
         {
             OnDeath?.Invoke();
             onDeath?.Invoke();
-            Destroy(gameObject);
+
+            // Keep SpawnManager tracking in sync so wave completion works.
+            if (CompareTag("Enemy") && SpawnManager.Instance != null)
+                SpawnManager.Instance.DestroyEnemy(gameObject);
+            else
+                Destroy(gameObject);
         }
     }
 }

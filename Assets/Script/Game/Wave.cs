@@ -93,42 +93,32 @@ public class Wave : MonoBehaviour
     [System.Serializable]
     public class WaveEvent
     {
-        public float duration = 15.0f;
         public List<SpawnInfo> spawnInfos = new();
-        private float startTime;
         public void StartEvent()
         {
-            startTime = Time.time;
             foreach (var info in spawnInfos)
                 info.Initialize();
         }
         public bool RunEvent()
         {
-            // If this element doesn't spawn anything, fall back to time duration.
+            // No spawn entries means this event can never satisfy completion conditions.
+            // Keep it running forever.
             if (spawnInfos.Count == 0)
-            {
-                if (duration == 0.0f)
-                    return false;
-                if (duration != 0.0f && Time.time - startTime > duration)
-                    return false;
                 return true;
-            }
 
-            // Spawning elements: keep running until all spawnInfos are depleted.
+            // Keep running until every configured spawn info has finished its amount.
+            bool allSpawnsCompleted = true;
             for (int i = 0; i < spawnInfos.Count; i++)
             {
                 spawnInfos[i].ReadyToSpawn();
-                if (spawnInfos[i].amount <= 0)
-                {
-                    spawnInfos.RemoveAt(i);
-                    i--;
-                }
+                if (!spawnInfos[i].IsCompleted())
+                    allSpawnsCompleted = false;
             }
 
-            // Once all enemies are spawned, only end when there are no remaining enemies in the scene.
-            if (spawnInfos.Count == 0)
+            // Once all enemies are spawned, only end when there are no remaining active enemies.
+            if (allSpawnsCompleted)
             {
-                int enemyCount = GameObject.FindGameObjectsWithTag("Enemy").Length;
+                int enemyCount = SpawnManager.Instance.GetEnemiesLeft();
                 if (enemyCount == 0)
                     return false;
             }
@@ -143,19 +133,33 @@ public class Wave : MonoBehaviour
             public int amount = 10;
             public float interval = 1.0f;
             private float lastTime;
+            private int remainingAmount;
+            private bool initialized;
             public void Initialize()
             {
                 lastTime = Time.time;
+                remainingAmount = amount;
+                initialized = true;
             }
             public void ReadyToSpawn()
             {
-                if (amount <= 0) return;
+                if (!initialized)
+                    Initialize();
+
+                if (remainingAmount <= 0) return;
                 if (Time.time - lastTime >= interval)
                 {
                     SpawnManager.Instance.Spawn(spawnPrefabIndex, spawnPointIndex);
                     lastTime = Time.time;
-                    amount--;
+                    remainingAmount--;
                 }
+            }
+            public bool IsCompleted()
+            {
+                if (!initialized)
+                    return amount <= 0;
+
+                return remainingAmount <= 0;
             }
         }
     }
