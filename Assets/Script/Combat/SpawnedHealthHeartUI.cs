@@ -19,6 +19,7 @@ public class SpawnedHealthHeartUI : MonoBehaviour
     [SerializeField] private float heartPixelSize = 15f;
     [SerializeField] private float spacingPixels = 2f;
     [SerializeField] private Vector2 boxPaddingPixels = new Vector2(10f, 6f);
+    [SerializeField] private int heartsPerRow = 7;
 
     private Health health;
     private RectTransform uiRootRect;
@@ -69,9 +70,13 @@ public class SpawnedHealthHeartUI : MonoBehaviour
             return;
 
         int maxHeartCount = Mathf.Max(1, Mathf.CeilToInt(health.MaxHealth / (float)HealthPerHeart));
-        float heartsWidth = maxHeartCount * heartPixelSize + Mathf.Max(0f, maxHeartCount - 1) * spacingPixels;
+        int perRow = Mathf.Max(1, heartsPerRow);
+        int columns = Mathf.Min(perRow, maxHeartCount);
+        int rows = Mathf.CeilToInt(maxHeartCount / (float)perRow);
+        float heartsWidth = columns * heartPixelSize + Mathf.Max(0f, columns - 1) * spacingPixels;
+        float heartsHeight = rows * heartPixelSize + Mathf.Max(0f, rows - 1) * spacingPixels;
         float totalWidth = heartsWidth + boxPaddingPixels.x * 2f;
-        float totalHeight = heartPixelSize + boxPaddingPixels.y * 2f;
+        float totalHeight = heartsHeight + boxPaddingPixels.y * 2f;
 
         GameObject root = new GameObject("HealthHeartUI", typeof(RectTransform));
         heartBarRect = root.GetComponent<RectTransform>();
@@ -84,24 +89,25 @@ public class SpawnedHealthHeartUI : MonoBehaviour
         if (boxSprite != null)
             CreateBackground(root.transform, heartBarRect.sizeDelta);
 
-        RectTransform heartsRow = new GameObject("Hearts", typeof(RectTransform), typeof(HorizontalLayoutGroup)).GetComponent<RectTransform>();
-        heartsRow.SetParent(root.transform, false);
-        heartsRow.anchorMin = new Vector2(0.5f, 0.5f);
-        heartsRow.anchorMax = new Vector2(0.5f, 0.5f);
-        heartsRow.pivot = new Vector2(0.5f, 0.5f);
-        heartsRow.sizeDelta = new Vector2(heartsWidth, heartPixelSize);
+        RectTransform heartsGrid = new GameObject("Hearts", typeof(RectTransform), typeof(GridLayoutGroup)).GetComponent<RectTransform>();
+        heartsGrid.SetParent(root.transform, false);
+        heartsGrid.anchorMin = new Vector2(0.5f, 0.5f);
+        heartsGrid.anchorMax = new Vector2(0.5f, 0.5f);
+        heartsGrid.pivot = new Vector2(0.5f, 0.5f);
+        heartsGrid.sizeDelta = new Vector2(heartsWidth, heartsHeight);
 
-        HorizontalLayoutGroup layout = heartsRow.GetComponent<HorizontalLayoutGroup>();
+        GridLayoutGroup layout = heartsGrid.GetComponent<GridLayoutGroup>();
+        layout.startAxis = GridLayoutGroup.Axis.Horizontal;
+        layout.startCorner = GridLayoutGroup.Corner.UpperLeft;
         layout.childAlignment = TextAnchor.MiddleCenter;
-        layout.childControlWidth = true;
-        layout.childControlHeight = true;
-        layout.childForceExpandWidth = false;
-        layout.childForceExpandHeight = false;
-        layout.spacing = spacingPixels;
+        layout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        layout.constraintCount = columns;
+        layout.cellSize = new Vector2(heartPixelSize, heartPixelSize);
+        layout.spacing = new Vector2(spacingPixels, spacingPixels);
 
         for (int i = 0; i < maxHeartCount; i++)
         {
-            GameObject icon = CreateHeartIcon(heartsRow, i);
+            GameObject icon = CreateHeartIcon(heartsGrid, i);
             heartIcons.Add(icon);
             heartImages.Add(icon != null ? icon.GetComponentInChildren<Image>(true) : null);
         }
@@ -267,7 +273,8 @@ public class SpawnedHealthHeartUI : MonoBehaviour
         if (!hasAny)
             return transform.position + Vector3.down * worldYOffset;
 
-        return new Vector3(bounds.center.x, bounds.min.y - worldYOffset, bounds.center.z);
+        // Keep heart bar centered on the prefab root, while still using the visual bottom for Y.
+        return new Vector3(transform.position.x, bounds.min.y - worldYOffset, transform.position.z);
     }
 
     private void OnDestroy()

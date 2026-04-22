@@ -92,6 +92,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &6158299099685096931
 BoxCollider:
@@ -126,7 +127,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f57424fdd40bf5a47beb508c8d97263a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
-  maxHealth: 70
+  maxHealth: 60
   onDeath:
     m_PersistentCalls:
       m_Calls: []
@@ -145,6 +146,7 @@ MonoBehaviour:
   enemyTag: Enemy
   attackRange: 0
   attacksPerSecond: 0
+  attackCooldownSeconds: 12
   damagePerHit: 0
   minSeparationFromOtherDefences: 356.4
 --- !u!54 &6398004058733578796
