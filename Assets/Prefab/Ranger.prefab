@@ -92,6 +92,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &6158299099685096931
 BoxCollider:
@@ -172,6 +173,7 @@ MonoBehaviour:
   enemyTag: Enemy
   attackRange: 25
   attacksPerSecond: 0.4
+  attackCooldownSeconds: 5
   damagePerHit: 5
   overlapLayers:
     serializedVersion: 2

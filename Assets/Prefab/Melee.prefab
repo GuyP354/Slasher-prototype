@@ -92,6 +92,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &6158299099685096931
 BoxCollider:
@@ -143,8 +144,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleDefense
   enemyTag: Enemy
-  attackRange: 2.12
+  attackRange: 5
   attacksPerSecond: 1
+  attackCooldownSeconds: 12
   damagePerHit: 10
   minSeparationFromOtherDefences: 356.4
 --- !u!54 &6398004058733578796
