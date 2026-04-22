@@ -635,6 +635,10 @@ public class BuildMode : MonoBehaviour
         isActive = false;
         if (spawnPreview != null)
             spawnPreview.SetActive(false);
+        if (previewTextInterface != null)
+            previewTextInterface.gameObject.SetActive(false);
+        if (previewTextInterfaceSecondary != null)
+            previewTextInterfaceSecondary.gameObject.SetActive(false);
         if (previewCornerText != null)
             previewCornerText.gameObject.SetActive(false);
     }
