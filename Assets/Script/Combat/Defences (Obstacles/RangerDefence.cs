@@ -10,7 +10,8 @@ public class RangerDefence : MonoBehaviour
 
     [Header("Combat")]
     [SerializeField] private float attackRange = 8f;
-    [SerializeField] private float attacksPerSecond = 1f;
+    [SerializeField] private float attacksPerSecond = 1f; // fallback if cooldown is 0
+    [SerializeField] private float attackCooldownSeconds = 9f;
     [SerializeField] private int damagePerHit = 10;
     [SerializeField] private LayerMask overlapLayers = ~0;
 
@@ -31,7 +32,9 @@ public class RangerDefence : MonoBehaviour
         if (!IsTargetInAttackRange(currentTarget))
             return;
 
-        nextAttackTime = Time.time + (attacksPerSecond > 0f ? 1f / attacksPerSecond : 0f);
+        float fallbackInterval = attacksPerSecond > 0f ? 1f / attacksPerSecond : 0f;
+        float cooldown = attackCooldownSeconds > 0f ? attackCooldownSeconds : fallbackInterval;
+        nextAttackTime = Time.time + cooldown;
         DealDamageToCurrentTarget();
     }
 

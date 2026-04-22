@@ -10,10 +10,14 @@ public class Health : MonoBehaviour
     [SerializeField] private UnityEvent onDeath;
 
     public event Action OnDeath;
+    public event Action<int, int> OnHealthChanged;
+    public int MaxHealth => maxHealth;
+    public int CurrentHealth => current;
 
     private void Awake()
     {
         current = maxHealth;
+        OnHealthChanged?.Invoke(current, maxHealth);
     }
 
     public void TakeDamage(int amount)
@@ -22,7 +26,8 @@ public class Health : MonoBehaviour
         if (amount <= 0) return;
 
         Debug.Log("Current Health: " + current);
-        current -= amount;
+        current = Mathf.Max(0, current - amount);
+        OnHealthChanged?.Invoke(current, maxHealth);
         if (current <= 0)
         {
             OnDeath?.Invoke();

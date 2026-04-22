@@ -7,7 +7,8 @@ public class ObstacleDefense : MonoBehaviour
 
     [Header("Attack settings")]
     [SerializeField] private float attackRange = 2.0f;      // melee radius
-    [SerializeField] private float attacksPerSecond = 1.0f; // 1 hit per second
+    [SerializeField] private float attacksPerSecond = 1.0f; // fallback if cooldown is 0
+    [SerializeField] private float attackCooldownSeconds = 12f;
     [SerializeField] private int damagePerHit = 10;
 
     [Header("Placement (Tower preview)")]
@@ -24,7 +25,9 @@ public class ObstacleDefense : MonoBehaviour
         Collider target = FindEnemyInRange();
         if (target != null)
         {
-            nextAttackTime = Time.time + 1f / attacksPerSecond;
+            float fallbackInterval = attacksPerSecond > 0f ? 1f / attacksPerSecond : 0f;
+            float cooldown = attackCooldownSeconds > 0f ? attackCooldownSeconds : fallbackInterval;
+            nextAttackTime = Time.time + cooldown;
             DealDamage(target);
         }
     }

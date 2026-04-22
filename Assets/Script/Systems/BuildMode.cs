@@ -33,11 +33,28 @@ public class BuildMode : MonoBehaviour
     [SerializeField] private List<int> defenceBloodCosts = new List<int>();
     [SerializeField] private int defaultBloodCost = 1;
 
+    [Header("Spawned defence heart UI")]
+    [Tooltip("Optional UI prefab used for each heart icon.")]
+    [SerializeField] private GameObject healthHeartIconPrefab;
+    [Tooltip("Heart sprite used in spawned health UI (1 heart per 5 max HP).")]
+    [SerializeField] private Sprite healthHeartSprite;
+    [Tooltip("Optional box sprite behind hearts in world-space UI.")]
+    [SerializeField] private Sprite healthHeartBoxSprite;
+
+    [Header("Defence rot (auto-decay)")]
+    [SerializeField] private bool enableRotDecay = true;
+    [SerializeField] private float rotMinSeconds = 100f;
+    [SerializeField] private float rotMaxSeconds = 300f;
+    [SerializeField] private int rotDamagePerTick = 5;
+    [SerializeField] private float rotPreviewSeconds = 0.5f;
+    [SerializeField] private Sprite heartExpiredSprite;
+
     private GameObject spawnPreview;
     private Vector3 previewDirection = Vector3.left;
     private bool isActive;
     private int prefabIndex;
     private Renderer[] previewRenderers;
+    private bool previewWithinPlacementRange;
 
     private void Start()
     {
@@ -76,6 +93,7 @@ public class BuildMode : MonoBehaviour
 
         MoveSpawnPreview();
         SnapPreviewToValidNearbyIfOverlapping();
+        UpdatePreviewRangeVisibility();
         UpdatePreviewDirectionInput();
     }
 
@@ -97,20 +115,72 @@ public class BuildMode : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
+            if (!previewWithinPlacementRange)
+                return;
             if (PreviewPlacementBlocked())
                 return;
             int cost = GetBloodCostForCurrentPrefab();
             if (BloodInventory.Instance == null || !BloodInventory.Instance.TrySpendBlood(cost))
                 return;
             if (defencePrefabs != null && prefabIndex >= 0 && prefabIndex < defencePrefabs.Count && defencePrefabs[prefabIndex] != null)
-                Instantiate(defencePrefabs[prefabIndex], spawnPreview.transform.position, spawnPreview.transform.rotation);
+            {
+                GameObject placed = Instantiate(defencePrefabs[prefabIndex], spawnPreview.transform.position, spawnPreview.transform.rotation);
+                Health health = placed.GetComponentInChildren<Health>(true);
+                SpawnedHealthHeartUI heartUI = TryCreateSpawnedHeartUI(placed, health);
+                TryAttachRotDecay(placed, health, heartUI);
+            }
         }
+    }
+
+    private SpawnedHealthHeartUI TryCreateSpawnedHeartUI(GameObject placed, Health health)
+    {
+        if (placed == null)
+            return null;
+        if (healthHeartIconPrefab == null && healthHeartSprite == null)
+            return null;
+        if (health == null || health.MaxHealth <= 0)
+            return null;
+
+        return SpawnedHealthHeartUI.CreateFor(
+            placed,
+            health,
+            healthHeartIconPrefab,
+            healthHeartSprite,
+            healthHeartBoxSprite);
+    }
+
+    private void TryAttachRotDecay(GameObject placed, Health health, SpawnedHealthHeartUI heartUI)
+    {
+        if (!enableRotDecay || placed == null || health == null)
+            return;
+
+        rot decay = placed.GetComponent<rot>();
+        if (decay == null)
+            decay = placed.AddComponent<rot>();
+
+        decay.Configure(
+            health,
+            heartUI,
+            heartExpiredSprite,
+            rotMinSeconds,
+            rotMaxSeconds,
+            rotDamagePerTick,
+            rotPreviewSeconds);
     }
 
     private void MoveSpawnPreview()
     {
         Vector3 previewPosition = transform.position + (previewDirection * PREVIEW_DISTANCE_FROM_PLAYER);
         spawnPreview.transform.position = previewPosition;
+    }
+
+    private void UpdatePreviewRangeVisibility()
+    {
+        if (spawnPreview == null) return;
+        float maxDistance = PREVIEW_DISTANCE_FROM_PLAYER + 0.01f;
+        float currentDistance = Vector3.Distance(transform.position, spawnPreview.transform.position);
+        previewWithinPlacementRange = currentDistance <= maxDistance;
+        spawnPreview.SetActive(isActive && previewWithinPlacementRange);
     }
 
     /// <summary>If the default build spot overlaps blockers or is too close to another defence, slide the preview on XZ.</summary>
@@ -189,10 +259,12 @@ public class BuildMode : MonoBehaviour
             od.enabled = false;
 
         previewRenderers = spawnPreview.GetComponentsInChildren<Renderer>(true);
+        previewWithinPlacementRange = true;
         spawnPreview.SetActive(isActive);
 
         MoveSpawnPreview();
         SnapPreviewToValidNearbyIfOverlapping();
+        UpdatePreviewRangeVisibility();
         ApplyPreviewMaterial();
     }
 
@@ -235,7 +307,6 @@ public class BuildMode : MonoBehaviour
             Collider h = hits[i];
             if (h == null) continue;
             if (h.transform.IsChildOf(spawnPreview.transform)) continue;
-            if (h.CompareTag("Player")) continue;
 
             bool onIgnoredLayer = ((1 << h.gameObject.layer) & overlapIgnoreLayers.value) != 0;
 
@@ -423,7 +494,7 @@ public class BuildMode : MonoBehaviour
     {
         if (spawnPreview == null) return;
         isActive = true;
-        spawnPreview.SetActive(true);
+        UpdatePreviewRangeVisibility();
         ApplyPreviewMaterial();
     }
 

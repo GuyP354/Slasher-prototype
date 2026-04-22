@@ -126,7 +126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f57424fdd40bf5a47beb508c8d97263a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
-  maxHealth: 200
+  maxHealth: 70
   onDeath:
     m_PersistentCalls:
       m_Calls: []
@@ -143,9 +143,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ObstacleDefense
   enemyTag: Enemy
-  attackRange: 2.12
-  attacksPerSecond: 1
-  damagePerHit: 10
+  attackRange: 0
+  attacksPerSecond: 0
+  damagePerHit: 0
   minSeparationFromOtherDefences: 356.4
 --- !u!54 &6398004058733578796
 Rigidbody:

@@ -126,7 +126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f57424fdd40bf5a47beb508c8d97263a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
-  maxHealth: 200
+  maxHealth: 20
   onDeath:
     m_PersistentCalls:
       m_Calls: []
@@ -170,9 +170,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RangerDefence
   enemyTag: Enemy
-  attackRange: 30
-  attacksPerSecond: 0.8
-  damagePerHit: 40
+  attackRange: 25
+  attacksPerSecond: 0.4
+  damagePerHit: 5
   overlapLayers:
     serializedVersion: 2
     m_Bits: 4294967295

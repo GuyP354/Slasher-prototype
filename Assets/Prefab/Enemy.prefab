@@ -136,7 +136,7 @@ MonoBehaviour:
   scanInterval: 0.15
   attackRange: 4
   attacksPerSecond: 1
-  damagePerHit: 8
+  damagePerHit: 5
   bloodResourcePrefab: {fileID: 5846917147889590866, guid: a94696a1ecb6240409200430d5c19be0, type: 3}
   bloodDropOffset: {x: 0, y: 0, z: 0}
 --- !u!195 &3503959757442902275
@@ -173,7 +173,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f57424fdd40bf5a47beb508c8d97263a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
-  maxHealth: 50
+  maxHealth: 10
   onDeath:
     m_PersistentCalls:
       m_Calls: []

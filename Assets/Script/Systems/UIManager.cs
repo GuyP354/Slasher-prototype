@@ -18,7 +18,8 @@ public class UIManager : MonoSingleton<UIManager>
 
     public override void Init()
     {
-        waveInfoPanel.SetActive(true);
+        if (waveInfoPanel != null)
+            waveInfoPanel.SetActive(true);
         ResolveAdditionalWaveTexts();
         ResolveAdditionalBloodTexts();
         ForceUpdateBlood();
@@ -35,7 +36,8 @@ public class UIManager : MonoSingleton<UIManager>
                 ApplyWaveText(additionalWaveTexts[i], waveInfo);
         }
 
-        enemiesAliveText.text = enemyCount.ToString();
+        if (enemiesAliveText != null)
+            enemiesAliveText.text = enemyCount.ToString();
         ForceUpdateBlood();
     }
 
