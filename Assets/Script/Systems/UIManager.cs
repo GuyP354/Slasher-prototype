@@ -115,4 +115,5 @@ public class UIManager : MonoSingleton<UIManager>
 
         additionalBloodTexts = foundTexts.ToArray();
     }
+
 }
