@@ -5,23 +5,41 @@ using System.Collections;
 public class LevelManager : MonoSingleton<LevelManager>
 {
     [SerializeField] private int lifePoint = 10;
+    [Header("Victory UI")]
+    [SerializeField] private GameObject victoryCanvas;
+    [SerializeField] private bool pauseOnVictory = true;
+
     private int currentWave;
     private int ammWave;
 
     private bool spawnActive = false;
     private bool waveActive = false;
+    private bool levelEnded = false;
+    private bool pendingFinalVictoryCheck = false;
     private List<Wave> waves = new List<Wave>();
     private UIManager uiManager;
 
     
     public override void Init() 
     {
-        
+        Time.timeScale = 1f;
         waves.Clear();
         waves.AddRange(GetComponents<Wave>());
         currentWave = 0;
         ammWave = waves.Count;
         uiManager = FindFirstObjectByType<UIManager>();
+        levelEnded = false;
+        pendingFinalVictoryCheck = false;
+
+        if (victoryCanvas == null)
+        {
+            GameObject found = GameObject.Find("Victory Canvas");
+            if (found != null)
+                victoryCanvas = found;
+        }
+
+        if (victoryCanvas != null)
+            victoryCanvas.SetActive(false);
     }
 
     private IEnumerator Start()
@@ -35,6 +53,9 @@ public class LevelManager : MonoSingleton<LevelManager>
 
     private void Update()
     {
+        if (levelEnded)
+            return;
+
         if (waveActive)
         {
             int enemyCount = GameObject.FindGameObjectsWithTag("Enemy").Length;
@@ -46,9 +67,14 @@ public class LevelManager : MonoSingleton<LevelManager>
                 waveActive = false;
                 Debug.Log("Wave cleared");
                 
-                if (waves.Count == 0)
-                    Victory();
+                if (pendingFinalVictoryCheck)
+                    TryTriggerVictory(enemyCount);
             }
+        }
+
+        if (pendingFinalVictoryCheck)
+        {
+            TryTriggerVictory(GameObject.FindGameObjectsWithTag("Enemy").Length);
         }
     }
 
@@ -70,12 +96,15 @@ public class LevelManager : MonoSingleton<LevelManager>
     public void EndWave()
     {
         Debug.Log("Ending Wave");
-        
+        if (waves.Count == 0)
+            return;
+
         Wave waveToDestroy = waves[0];
         waves.RemoveAt(0);
         Destroy(waveToDestroy);
         
         spawnActive = false;
+        pendingFinalVictoryCheck = waves.Count == 0;
     }
 
     public void EnemyCrossed()
@@ -93,7 +122,44 @@ public class LevelManager : MonoSingleton<LevelManager>
         return "0/0";
     }
 
-    private void Victory() => Debug.Log("Level Cleared");
+    private void Defeat()
+    {
+        if (levelEnded)
+            return;
 
-    private void Defeat() => Debug.Log("Defeat");
+        levelEnded = true;
+        Debug.Log("Defeat");
+    }
+
+    private void TryTriggerVictory(int enemyCount)
+    {
+        if (levelEnded)
+            return;
+
+        // Victory only after all wave rounds are consumed and no enemies remain alive.
+        if (waves.Count > 0)
+            return;
+        if (spawnActive)
+            return;
+        if (enemyCount > 0)
+            return;
+
+        pendingFinalVictoryCheck = false;
+        Victory();
+    }
+
+    private void Victory()
+    {
+        if (levelEnded)
+            return;
+
+        levelEnded = true;
+        Debug.Log("Level Cleared");
+
+        if (victoryCanvas != null)
+            victoryCanvas.SetActive(true);
+
+        if (pauseOnVictory)
+            Time.timeScale = 0f;
+    }
 }
