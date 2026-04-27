@@ -26,16 +26,12 @@ public class SpawnManager : MonoSingleton<SpawnManager>
 
     public void DestroyEnemy(GameObject go)
     {
-        if (go == null)
-            return;
-
         activeEnemies.Remove(go);
         Destroy(go);
     }
 
     public int GetEnemiesLeft()
     {
-        activeEnemies.RemoveAll(enemy => enemy == null);
         return activeEnemies.Count;
     }
     // Temporary

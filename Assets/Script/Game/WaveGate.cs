@@ -14,6 +14,7 @@ public class WaveGate : MonoBehaviour
 
     [Header("Interaction")]
     [SerializeField] private string playerTag = "Player";
+    [SerializeField] private Transform playerTransform;
     [SerializeField] private KeyCode interactKey = KeyCode.E;
     [SerializeField] private Collider interactionArea;
 
@@ -87,23 +88,36 @@ public class WaveGate : MonoBehaviour
 
     private void CachePlayer()
     {
+        if (playerTransform != null)
+        {
+            player = playerTransform;
+            return;
+        }
+
         GameObject playerGo = GameObject.FindGameObjectWithTag(playerTag);
         if (playerGo != null)
+        {
             player = playerGo.transform;
+            return;
+        }
+
+        PlayerController controller = FindFirstObjectByType<PlayerController>();
+        if (controller != null)
+            player = controller.transform;
     }
 
     private bool IsPlayerInInteractionArea()
     {
-        if (interactionArea == null)
+        if (interactionArea == null || player == null)
             return false;
 
-        Bounds b = interactionArea.bounds;
-        Collider[] hits = Physics.OverlapBox(
-            b.center,
-            b.extents,
-            interactionArea.transform.rotation
-        );
+        // Reliable check even when collider/tag setup changes on player hierarchy.
+        Vector3 closest = interactionArea.ClosestPoint(player.position);
+        if ((closest - player.position).sqrMagnitude < 0.0001f)
+            return true;
 
+        Bounds b = interactionArea.bounds;
+        Collider[] hits = Physics.OverlapBox(b.center, b.extents, interactionArea.transform.rotation);
         for (int i = 0; i < hits.Length; i++)
         {
             Collider hit = hits[i];

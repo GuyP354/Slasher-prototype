@@ -11,6 +11,9 @@ public class BuildMode : MonoBehaviour
     public const string ObstacleTag = "Obstacle";
 
     public List<GameObject> defencePrefabs;
+    [Header("Build anchor")]
+    [Tooltip("Use Player Root transform here so preview uses that pivot.")]
+    [SerializeField] private Transform buildPreviewAnchor;
 
     [Header("Preview materials")]
     [Tooltip("Material applied to preview renderers while building.")]
@@ -28,6 +31,9 @@ public class BuildMode : MonoBehaviour
     [Tooltip("If the default preview spot overlaps, search this far on the ground (XZ) for a valid position.")]
     [SerializeField] private float validPlacementSearchMaxRadius = 10f;
     [SerializeField] private float validPlacementSearchStep = 0.5f;
+    [Header("Preview height")]
+    [Tooltip("Extra height above player Y for preview base alignment.")]
+    [SerializeField] private float previewHeightOffset = 0f;
 
     [Header("Blood cost (same order as defence prefabs)")]
     [Tooltip("Blood spent when placing each defence. Index matches defencePrefabs. If missing, defaultBloodCost is used.")]
@@ -69,6 +75,8 @@ public class BuildMode : MonoBehaviour
     private Renderer[] previewRenderers;
     private bool previewWithinPlacementRange;
     private TextMeshProUGUI previewCornerText;
+
+    private Transform PreviewAnchor => buildPreviewAnchor != null ? buildPreviewAnchor : transform;
 
     private void Start()
     {
@@ -119,14 +127,15 @@ public class BuildMode : MonoBehaviour
         else if (Input.GetKeyDown(KeyCode.RightArrow))
             CyclePrefab(1);
 
+        Transform anchor = PreviewAnchor;
         if (Input.GetKeyDown(KeyCode.A))
-            previewDirection = -transform.right;
+            previewDirection = -anchor.right;
         else if (Input.GetKeyDown(KeyCode.D))
-            previewDirection = transform.right;
+            previewDirection = anchor.right;
         else if (Input.GetKeyDown(KeyCode.W))
-            previewDirection = transform.forward;
+            previewDirection = anchor.forward;
         else if (Input.GetKeyDown(KeyCode.S))
-            previewDirection = -transform.forward;
+            previewDirection = -anchor.forward;
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -185,15 +194,54 @@ public class BuildMode : MonoBehaviour
 
     private void MoveSpawnPreview()
     {
-        Vector3 previewPosition = transform.position + (previewDirection * PREVIEW_DISTANCE_FROM_PLAYER);
+        Transform anchor = PreviewAnchor;
+        Vector3 planarDirection = new Vector3(previewDirection.x, 0f, previewDirection.z);
+        if (planarDirection.sqrMagnitude < 0.0001f)
+            planarDirection = Vector3.left;
+        planarDirection.Normalize();
+
+        Vector3 previewPosition = anchor.position + (planarDirection * PREVIEW_DISTANCE_FROM_PLAYER);
+        previewPosition.y = anchor.position.y + previewHeightOffset;
         spawnPreview.transform.position = previewPosition;
+
+        // Align preview visual bottom to anchor level using renderers only.
+        // Collider bounds can be larger/offset and push the preview too low.
+        if (TryGetPreviewVisualBounds(spawnPreview, out Bounds b))
+        {
+            float targetBottomY = anchor.position.y + previewHeightOffset;
+            float yAdjust = targetBottomY - b.min.y;
+            if (Mathf.Abs(yAdjust) > 0.0001f)
+            {
+                Vector3 adjusted = spawnPreview.transform.position;
+                adjusted.y += yAdjust;
+                spawnPreview.transform.position = adjusted;
+            }
+        }
+    }
+
+    private static bool TryGetPreviewVisualBounds(GameObject root, out Bounds bounds)
+    {
+        bounds = default;
+        Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+        if (renderers.Length == 0)
+            return false;
+
+        bounds = renderers[0].bounds;
+        for (int i = 1; i < renderers.Length; i++)
+            bounds.Encapsulate(renderers[i].bounds);
+        return true;
     }
 
     private void UpdatePreviewRangeVisibility()
     {
         if (spawnPreview == null) return;
+        Transform anchor = PreviewAnchor;
         float maxDistance = PREVIEW_DISTANCE_FROM_PLAYER + 0.01f;
-        float currentDistance = Vector3.Distance(transform.position, spawnPreview.transform.position);
+        Vector3 anchorPos = anchor.position;
+        Vector3 previewPos = spawnPreview.transform.position;
+        float dx = anchorPos.x - previewPos.x;
+        float dz = anchorPos.z - previewPos.z;
+        float currentDistance = Mathf.Sqrt((dx * dx) + (dz * dz));
         previewWithinPlacementRange = currentDistance <= maxDistance;
         spawnPreview.SetActive(isActive && previewWithinPlacementRange);
     }

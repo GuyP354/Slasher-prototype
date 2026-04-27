@@ -1,22 +1,30 @@
 using UnityEngine;
-using System.Collections.Generic;
 
 public class PlayerController : MonoBehaviour
 {
     public float speed;
-    public float forwardBackwardSpeedMultiplier = 1.5f;
+    [SerializeField] private float forwardBackwardSpeedMultiplier = 1.2f;
     public float groundDist;
+    [Header("Animation")]
+    [SerializeField] private Animator characterAnimator;
+    [SerializeField] private string idleStateName = "Idle";
+    [SerializeField] private string moveUpStateName = "MoveUp";
+    [SerializeField] private string moveDownStateName = "MoveDown";
+    [SerializeField] private string moveLeftStateName = "MoveLeft";
+    [SerializeField] private string moveRightStateName = "MoveRight";
+    [SerializeField] private float idleReturnDelaySeconds = 3f;
 
     public LayerMask terrainLayer;
     public Rigidbody rb;
     public SpriteRenderer sr;
-    private readonly List<KeyCode> movementKeyOrder = new List<KeyCode>();
-    private static readonly KeyCode[] movementKeys = { KeyCode.W, KeyCode.A, KeyCode.S, KeyCode.D };
+    private string currentAnimState;
+    private float lastMovementTime;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
 
     {
         rb = gameObject.GetComponent<Rigidbody>();
+        lastMovementTime = Time.time;
     }
 
     // Update is called once per frame
@@ -34,16 +42,30 @@ public class PlayerController : MonoBehaviour
                 transform.position = movePos;
             }
         }
-        UpdateMovementKeyOrder();
-        Vector2 moveInput = GetPrioritizedMovementInput();
-        float x = moveInput.x;
-        float y = moveInput.y;
-        Vector3 moveVelocity = new Vector3(
-            x * speed,
-            rb.linearVelocity.y,
-            y * speed * forwardBackwardSpeedMultiplier
-        );
-        rb.linearVelocity = moveVelocity;
+        float x = 0f;
+        if (Input.GetKey(KeyCode.A)) x -= 1f;
+        if (Input.GetKey(KeyCode.D)) x += 1f;
+
+        float y = 0f;
+        if (Input.GetKey(KeyCode.S)) y -= 1f;
+        if (Input.GetKey(KeyCode.W)) y += 1f;
+
+        float horizontalSpeed = speed;
+        float verticalSpeed = y > 0f ? speed * forwardBackwardSpeedMultiplier : speed;
+        bool movingHorizontal = !Mathf.Approximately(x, 0f);
+        bool movingVertical = !Mathf.Approximately(y, 0f);
+
+        float chosenSpeed;
+        if (movingHorizontal && movingVertical)
+            chosenSpeed = Mathf.Min(horizontalSpeed, verticalSpeed);
+        else if (movingVertical)
+            chosenSpeed = verticalSpeed;
+        else
+            chosenSpeed = horizontalSpeed;
+
+        Vector3 moveDir = new Vector3(x, 0, y).normalized;
+        rb.linearVelocity = moveDir * chosenSpeed;
+        UpdateMovementAnimation();
         if (x != 0 && x < 0)
         {
             sr.flipX = false;
@@ -54,41 +76,57 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void UpdateMovementKeyOrder()
+    private void UpdateMovementAnimation()
     {
-        for (int i = 0; i < movementKeys.Length; i++)
-        {
-            KeyCode key = movementKeys[i];
-            if (Input.GetKeyDown(key))
-            {
-                movementKeyOrder.Remove(key);
-                movementKeyOrder.Add(key);
-            }
+        if (characterAnimator == null)
+            return;
 
-            if (Input.GetKeyUp(key))
-            {
-                movementKeyOrder.Remove(key);
-            }
+        string targetState = null;
+        if (Input.GetKey(KeyCode.W))
+            targetState = moveUpStateName;
+        else if (Input.GetKey(KeyCode.S))
+            targetState = moveDownStateName;
+        else if (Input.GetKey(KeyCode.A))
+            targetState = moveLeftStateName;
+        else if (Input.GetKey(KeyCode.D))
+            targetState = moveRightStateName;
+
+        if (!string.IsNullOrEmpty(targetState))
+        {
+            lastMovementTime = Time.time;
+            characterAnimator.speed = 1f;
+            PlayAnimState(targetState, true);
+            return;
         }
+
+        // No movement key: freeze current movement pose, then return to idle after delay.
+        if (currentAnimState != idleStateName)
+        {
+            if (Time.time - lastMovementTime >= idleReturnDelaySeconds)
+            {
+                characterAnimator.speed = 1f;
+                PlayAnimState(idleStateName, true);
+            }
+            else
+            {
+                characterAnimator.speed = 0f;
+            }
+            return;
+        }
+
+        // Ensure idle remains playing normally.
+        characterAnimator.speed = 1f;
     }
 
-    Vector2 GetPrioritizedMovementInput()
+    private void PlayAnimState(string stateName, bool restart)
     {
-        while (movementKeyOrder.Count > 0 && !Input.GetKey(movementKeyOrder[0]))
-        {
-            movementKeyOrder.RemoveAt(0);
-        }
+        if (string.IsNullOrEmpty(stateName))
+            return;
 
-        if (movementKeyOrder.Count == 0)
+        if (restart || currentAnimState != stateName)
         {
-            return Vector2.zero;
+            characterAnimator.Play(stateName, 0, 0f);
+            currentAnimState = stateName;
         }
-
-        KeyCode activeKey = movementKeyOrder[0];
-        if (activeKey == KeyCode.W) return Vector2.up;
-        if (activeKey == KeyCode.S) return Vector2.down;
-        if (activeKey == KeyCode.A) return Vector2.left;
-        if (activeKey == KeyCode.D) return Vector2.right;
-        return Vector2.zero;
     }
 }
