@@ -82,24 +82,25 @@ public class PlayerController : MonoBehaviour
             return;
 
         string targetState = null;
-        if (Input.GetKey(KeyCode.W))
-            targetState = moveUpStateName;
-        else if (Input.GetKey(KeyCode.S))
-            targetState = moveDownStateName;
-        else if (Input.GetKey(KeyCode.A))
+        // Priority: A > D > W > S
+        if (Input.GetKey(KeyCode.A))
             targetState = moveLeftStateName;
         else if (Input.GetKey(KeyCode.D))
             targetState = moveRightStateName;
+        else if (Input.GetKey(KeyCode.W))
+            targetState = moveUpStateName;
+        else if (Input.GetKey(KeyCode.S))
+            targetState = moveDownStateName;
 
         if (!string.IsNullOrEmpty(targetState))
         {
             lastMovementTime = Time.time;
             characterAnimator.speed = 1f;
-            PlayAnimState(targetState, true);
+            PlayAnimState(targetState, false);
             return;
         }
 
-        // No movement key: freeze current movement pose, then return to idle after delay.
+        // No movement key: keep current movement animation playing, then return to idle after delay.
         if (currentAnimState != idleStateName)
         {
             if (Time.time - lastMovementTime >= idleReturnDelaySeconds)
@@ -109,7 +110,7 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                characterAnimator.speed = 0f;
+                characterAnimator.speed = 1f;
             }
             return;
         }

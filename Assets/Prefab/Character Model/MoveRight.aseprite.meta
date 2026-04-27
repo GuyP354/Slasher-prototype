@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: fa691a83fcad7ee4a81155f6c8acd825
+guid: f1584749910e11444934485c62685f40
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -129,7 +129,49 @@ ScriptedImporter:
   animatedSpriteImportData:
   - name: Frame_0
     originalName: 
-    pivot: {x: 0.2631579, y: -0.5}
+    pivot: {x: 0.6428572, y: -0.5151515}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 4
+      y: 87
+      width: 14
+      height: 33
+    spriteID: 053ee0ebbb3fb6d4a9cfa0ac58ab7079
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 4, y: 87}
+  - name: Frame_1
+    originalName: 
+    pivot: {x: 0.6, y: -0.54545456}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 4
+      y: 46
+      width: 15
+      height: 33
+    spriteID: 6511f6e53e867f746a91be4f005e70e7
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 4, y: 46}
+  - name: Frame_2
+    originalName: 
+    pivot: {x: 0.6, y: -0.5}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -137,9 +179,9 @@ ScriptedImporter:
       serializedVersion: 2
       x: 4
       y: 4
-      width: 19
+      width: 15
       height: 34
-    spriteID: f5d1cbf841cdcdb4d989f24f130c47ce
+    spriteID: b8a8dc3b5a58d3948aee09215ebe2a48
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -148,38 +190,17 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 4, y: 4}
-  - name: Frame_1
-    originalName: 
-    pivot: {x: 0.2631579, y: -0.5}
-    alignment: 9
-    border: {x: 0, y: 0, z: 0, w: 0}
-    customData: 
-    rect:
-      serializedVersion: 2
-      x: 31
-      y: 4
-      width: 19
-      height: 34
-    spriteID: 2b0fd92fa457b814486b3af8d68bbb01
-    spriteBone: []
-    spriteOutline: []
-    vertices: []
-    spritePhysicsOutline: []
-    indices: 
-    edges: []
-    tessellationDetail: 0
-    uvTransform: {x: 31, y: 4}
   spriteSheetImportData: []
   tileSetImportData: []
   asepriteLayers:
   - layerIndex: 0
     uuid:
-      value0: 1539534165
+      value0: 3749536733
       value1: 0
       value2: 0
       value3: 0
     guid: 0
-    name: Annabell Myers Sprite Back
+    name: Annabell Myers Sprite Walking animation
     layerFlags: 0
     layerType: 0
     blendMode: 0
@@ -188,20 +209,29 @@ ScriptedImporter:
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
-        x: 27
+        x: 23
         y: 17
-        width: 19
-        height: 34
-      spriteId: f5d1cbf841cdcdb4d989f24f130c47ce
+        width: 14
+        height: 33
+      spriteId: 053ee0ebbb3fb6d4a9cfa0ac58ab7079
     - name: Frame_1
       frameIndex: 1
       additiveSortOrder: 0
       cellRect:
-        x: 27
+        x: 23
+        y: 18
+        width: 15
+        height: 33
+      spriteId: 6511f6e53e867f746a91be4f005e70e7
+    - name: Frame_2
+      frameIndex: 2
+      additiveSortOrder: 0
+      cellRect:
+        x: 23
         y: 17
-        width: 19
+        width: 15
         height: 34
-      spriteId: 2b0fd92fa457b814486b3af8d68bbb01
+      spriteId: b8a8dc3b5a58d3948aee09215ebe2a48
     linkedCells: []
     tileCells: []
     tileSetIndex: 0
@@ -212,4 +242,4 @@ ScriptedImporter:
   secondarySpriteTextures: []
   spritePackingTag: 
   canvasSize: {x: 64, y: 64}
-  previousTextureSize: {x: 64, y: 64}
+  previousTextureSize: {x: 64, y: 128}
