@@ -1095,6 +1095,195 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 100, y: 100}
+  - name: Floor tile map_46
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 100
+      y: 124
+      width: 16
+      height: 16
+    spriteID: ad4cb0d5f4ed56f41ab8517a677f9af6
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 100, y: 124}
+  - name: Floor tile map_47
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 100
+      y: 148
+      width: 16
+      height: 16
+    spriteID: 658ac73f7f4cfe944939c896ebebdeff
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 100, y: 148}
+  - name: Floor tile map_48
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 100
+      y: 172
+      width: 16
+      height: 16
+    spriteID: 43feb2436f26a0a42ab9a8e95e53a86c
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 100, y: 172}
+  - name: Floor tile map_49
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 100
+      y: 196
+      width: 16
+      height: 16
+    spriteID: fa5774904b2007c40af881dca8e443cf
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 100, y: 196}
+  - name: Floor tile map_50
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 100
+      y: 220
+      width: 16
+      height: 16
+    spriteID: 90c78fdf78ed3684eb2d7b97395bdf35
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 100, y: 220}
+  - name: Floor tile map_51
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 124
+      y: 4
+      width: 16
+      height: 16
+    spriteID: 889128c41bf489f43ab4a680dc0837ca
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 124, y: 4}
+  - name: Floor tile map_52
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 124
+      y: 28
+      width: 16
+      height: 16
+    spriteID: a0ecd2b0cd0ac4943936d1a6b5e67d25
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 124, y: 28}
+  - name: Floor tile map_53
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 124
+      y: 52
+      width: 16
+      height: 16
+    spriteID: 3815c2bd1bf73244e86f3e5c8eb5aa94
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 124, y: 52}
+  - name: Floor tile map_54
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 124
+      y: 76
+      width: 16
+      height: 16
+    spriteID: f90d7b237f7b7f24281c7466ca169329
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 124, y: 76}
   asepriteLayers:
   - layerIndex: 0
     uuid:
@@ -1117,7 +1306,7 @@ ScriptedImporter:
         y: 0
         width: 7
         height: 7
-      tileIndices: 0100000002000000030000000400000005000000060000000700000008000000090000000a0000000b0000000c0000000d0000000e0000000f000000100000001100000012000000130000001400000015000000160000001700000018000000190000001a0000001b0000001c0000001d0000001e0000001f000000200000002100000022000000230000002400000025000000260000002700000028000000290000002a0000002b0000002c0000002d00000022000000000000000000000000000000
+      tileIndices: 0100000002000000030000000400000005000000060000000700000008000000090000000a0000000b0000000c0000000d0000000e0000000f000000100000001100000012000000130000001400000015000000160000001700000018000000190000001a0000001b0000001c0000001d0000001e0000001f000000200000002100000022000000230000002400000025000000260000002700000028000000290000002a0000002b0000002c0000002d00000036000000000000000000000000000000
     tileSetIndex: 0
     parentIndex: -1
   tileSets:
@@ -1397,6 +1586,60 @@ ScriptedImporter:
         y: 16
       name: Floor tile map_45
       spriteId: e579510e9dd2e0743a40cb52ed75c426
+    - tileId: 46
+      size:
+        x: 16
+        y: 16
+      name: Floor tile map_46
+      spriteId: ad4cb0d5f4ed56f41ab8517a677f9af6
+    - tileId: 47
+      size:
+        x: 16
+        y: 16
+      name: Floor tile map_47
+      spriteId: 658ac73f7f4cfe944939c896ebebdeff
+    - tileId: 48
+      size:
+        x: 16
+        y: 16
+      name: Floor tile map_48
+      spriteId: 43feb2436f26a0a42ab9a8e95e53a86c
+    - tileId: 49
+      size:
+        x: 16
+        y: 16
+      name: Floor tile map_49
+      spriteId: fa5774904b2007c40af881dca8e443cf
+    - tileId: 50
+      size:
+        x: 16
+        y: 16
+      name: Floor tile map_50
+      spriteId: 90c78fdf78ed3684eb2d7b97395bdf35
+    - tileId: 51
+      size:
+        x: 16
+        y: 16
+      name: Floor tile map_51
+      spriteId: 889128c41bf489f43ab4a680dc0837ca
+    - tileId: 52
+      size:
+        x: 16
+        y: 16
+      name: Floor tile map_52
+      spriteId: a0ecd2b0cd0ac4943936d1a6b5e67d25
+    - tileId: 53
+      size:
+        x: 16
+        y: 16
+      name: Floor tile map_53
+      spriteId: 3815c2bd1bf73244e86f3e5c8eb5aa94
+    - tileId: 54
+      size:
+        x: 16
+        y: 16
+      name: Floor tile map_54
+      spriteId: f90d7b237f7b7f24281c7466ca169329
     guid: 231736178
   platformSettings:
   - name: DefaultTexturePlatform
@@ -1427,4 +1670,4 @@ ScriptedImporter:
   secondarySpriteTextures: []
   spritePackingTag: 
   canvasSize: {x: 112, y: 112}
-  previousTextureSize: {x: 128, y: 256}
+  previousTextureSize: {x: 256, y: 256}
