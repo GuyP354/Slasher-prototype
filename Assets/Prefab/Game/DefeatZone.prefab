@@ -80,6 +80,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 50
+  destroyGameObjectOnDeath: 0
   onDeath:
     m_PersistentCalls:
       m_Calls: []

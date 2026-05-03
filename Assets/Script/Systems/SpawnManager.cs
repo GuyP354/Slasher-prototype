@@ -32,6 +32,12 @@ public class SpawnManager : MonoSingleton<SpawnManager>
 
     public int GetEnemiesLeft()
     {
+        for (int i = activeEnemies.Count - 1; i >= 0; i--)
+        {
+            if (activeEnemies[i] == null)
+                activeEnemies.RemoveAt(i);
+        }
+
         return activeEnemies.Count;
     }
     // Temporary

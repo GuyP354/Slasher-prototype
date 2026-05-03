@@ -4,7 +4,8 @@ public class Wave : MonoBehaviour
 {
     public List<WaveEvent> events = new();
     public event System.Action WaveElementStarted;
-    public event System.Action WaveElementEnded;
+    /// <summary>False between multi-step wave segments; true when this was the last segment (whole wave done).</summary>
+    public event System.Action<bool> WaveElementEnded;
     private bool advanceAllowed;
     private bool isPlaying;
     private bool waitingForNextEvent;
@@ -64,16 +65,14 @@ public class Wave : MonoBehaviour
         if (!events[0].RunEvent())
         {
             Debug.Log("End Event");
-            WaveElementEnded?.Invoke();
             completedEvents++;
             events.RemoveAt(0);
-            if (events.Count == 0)
-            {
+            bool waveFullyComplete = events.Count == 0;
+            WaveElementEnded?.Invoke(waveFullyComplete);
+            if (waveFullyComplete)
                 FinishWave();
-            }
             else
             {
-                // Don't auto-start next event; wait for E
                 waitingForNextEvent = true;
                 Debug.Log("Press E to start next event");
             }
@@ -125,11 +124,12 @@ public class Wave : MonoBehaviour
                 }
             }
 
-            // Once all enemies are spawned, only end when there are no remaining enemies in the scene.
+            // Spawning finished: require no tagged enemies AND none left in SpawnManager (untagged spawned enemies no longer end the wave early).
             if (spawnInfos.Count == 0)
             {
-                int enemyCount = GameObject.FindGameObjectsWithTag("Enemy").Length;
-                if (enemyCount == 0)
+                int tagged = GameObject.FindGameObjectsWithTag("Enemy").Length;
+                int spawner = SpawnManager.Instance != null ? SpawnManager.Instance.GetEnemiesLeft() : 0;
+                if (Mathf.Max(tagged, spawner) == 0)
                     return false;
             }
 

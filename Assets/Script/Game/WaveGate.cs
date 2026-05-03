@@ -5,12 +5,18 @@ public class WaveGate : MonoBehaviour
     [Header("Wave")]
     [SerializeField] private Wave waveToStart;
 
-    [Header("Mesh Collider")]
+    [Header("Passage (never destroyed)")]
+    [Tooltip("Assign a BoxCollider child, or leave empty to auto-create \"PassageBarrier\". Only this collider's isTrigger follows the wave.")]
+    [SerializeField] private BoxCollider passageBarrier;
+    [SerializeField] private Vector3 passageBarrierLocalSize = new Vector3(3f, 4f, 0.35f);
+    [SerializeField] private Vector3 passageBarrierLocalCenter = Vector3.zero;
+
+    [Header("Optional visuals (not driven by wave)")]
     [SerializeField] private MeshCollider gateMeshCollider;
 
     [Header("Blocking")]
-    [SerializeField] private Collider[] blockingColliders; // solid colliders to toggle
-    [SerializeField] private UnityEngine.AI.NavMeshObstacle navObstacle;   // optional
+    [SerializeField] private Collider[] blockingColliders;
+    [SerializeField] private UnityEngine.AI.NavMeshObstacle navObstacle;
 
     [Header("Interaction")]
     [SerializeField] private string playerTag = "Player";
@@ -29,11 +35,36 @@ public class WaveGate : MonoBehaviour
         if (gateMeshCollider == null)
             gateMeshCollider = GetComponent<MeshCollider>();
 
-        // Per requirement: collider is a trigger before/after an element runs.
-        idleIsTrigger = true;
+        EnsurePassageBarrier();
 
-        // Start with the gate open and non-blocking until a wave element begins.
+        idleIsTrigger = true;
         Open();
+    }
+
+    private void EnsurePassageBarrier()
+    {
+        if (passageBarrier != null)
+            return;
+
+        Transform existing = transform.Find("PassageBarrier");
+        if (existing != null)
+        {
+            passageBarrier = existing.GetComponent<BoxCollider>();
+            if (passageBarrier != null)
+                return;
+        }
+
+        var go = new GameObject("PassageBarrier");
+        go.transform.SetParent(transform, false);
+        go.transform.localPosition = passageBarrierLocalCenter;
+        go.transform.localRotation = Quaternion.identity;
+        go.transform.localScale = Vector3.one;
+        go.layer = gameObject.layer;
+
+        passageBarrier = go.AddComponent<BoxCollider>();
+        passageBarrier.size = passageBarrierLocalSize;
+        passageBarrier.center = Vector3.zero;
+        passageBarrier.isTrigger = true;
     }
 
     private void OnEnable()
@@ -52,18 +83,6 @@ public class WaveGate : MonoBehaviour
         waveToStart.WaveElementEnded -= HandleWaveElementEnded;
     }
 
-    //private void OnEnable()
-   // {
-        //if (LevelManager.Instance != null)
-            //LevelManager.Instance.WaveEnds += Open;
-   // }
-
-    //private void OnDisable()
-    //{
-        //if (LevelManager.Instance != null)
-           // LevelManager.Instance.if WaveEnds -= Open;
-   // }
-
     private void Update()
     {
         if (player == null)
@@ -74,7 +93,6 @@ public class WaveGate : MonoBehaviour
         if (waveToStart != null)
             waveToStart.SetAdvanceAllowed(playerInArea);
 
-        // Start the wave only once (Wave itself handles "Press E to start next event").
         if (waveStarted) return;
 
         if (!playerInArea) return;
@@ -82,6 +100,7 @@ public class WaveGate : MonoBehaviour
         if (Input.GetKeyDown(interactKey) && waveToStart != null)
         {
             waveStarted = true;
+            Close();
             waveToStart.StartWave();
         }
     }
@@ -111,7 +130,6 @@ public class WaveGate : MonoBehaviour
         if (interactionArea == null || player == null)
             return false;
 
-        // Reliable check even when collider/tag setup changes on player hierarchy.
         Vector3 closest = interactionArea.ClosestPoint(player.position);
         if ((closest - player.position).sqrMagnitude < 0.0001f)
             return true;
@@ -136,37 +154,47 @@ public class WaveGate : MonoBehaviour
         if (isClosed) return;
         isClosed = true;
 
-        for (int i = 0; i < blockingColliders.Length; i++)
-            if (blockingColliders[i] != null) blockingColliders[i].enabled = true;
+        if (blockingColliders != null)
+        {
+            for (int i = 0; i < blockingColliders.Length; i++)
+                if (blockingColliders[i] != null) blockingColliders[i].enabled = true;
+        }
 
         if (navObstacle != null) navObstacle.enabled = true;
 
-        if (gateMeshCollider != null)
-            gateMeshCollider.isTrigger = false;
+        SetPassageSolid(true);
     }
 
     private void Open()
     {
         isClosed = false;
 
-        for (int i = 0; i < blockingColliders.Length; i++)
-            if (blockingColliders[i] != null) blockingColliders[i].enabled = false;
+        if (blockingColliders != null)
+        {
+            for (int i = 0; i < blockingColliders.Length; i++)
+                if (blockingColliders[i] != null) blockingColliders[i].enabled = false;
+        }
 
         if (navObstacle != null) navObstacle.enabled = false;
 
-        if (gateMeshCollider != null)
-            gateMeshCollider.isTrigger = idleIsTrigger;
+        SetPassageSolid(false);
+    }
+
+    private void SetPassageSolid(bool solid)
+    {
+        if (passageBarrier == null)
+            return;
+        passageBarrier.isTrigger = !solid && idleIsTrigger;
     }
 
     private void HandleWaveElementStarted()
     {
-        // Element is running: block the gate.
         Close();
     }
 
-    private void HandleWaveElementEnded()
+    private void HandleWaveElementEnded(bool waveFullyComplete)
     {
-        // Element finished (enemy count reached zero): reopen the gate.
-        Open();
+        if (waveFullyComplete)
+            Open();
     }
 }
