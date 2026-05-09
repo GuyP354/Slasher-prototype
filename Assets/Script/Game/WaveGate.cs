@@ -194,7 +194,12 @@ public class WaveGate : MonoBehaviour
 
     private void HandleWaveElementEnded(bool waveFullyComplete)
     {
-        if (waveFullyComplete)
+        int taggedEnemies = GameObject.FindGameObjectsWithTag("Enemy").Length;
+        int trackedEnemies = SpawnManager.Instance != null ? SpawnManager.Instance.GetEnemiesLeft() : 0;
+
+        if (Mathf.Max(taggedEnemies, trackedEnemies) == 0)
             Open();
+        else
+            Close();
     }
 }

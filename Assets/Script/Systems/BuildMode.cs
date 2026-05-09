@@ -320,6 +320,8 @@ public class BuildMode : MonoBehaviour
             c.enabled = false;
         foreach (var od in spawnPreview.GetComponentsInChildren<ObstacleDefense>(true))
             od.enabled = false;
+        foreach (var rd in spawnPreview.GetComponentsInChildren<RangerDefence>(true))
+            rd.enabled = false;
 
         previewRenderers = spawnPreview.GetComponentsInChildren<Renderer>(true);
         previewWithinPlacementRange = true;

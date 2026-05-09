@@ -8,11 +8,11 @@ public class SpawnManager : MonoSingleton<SpawnManager>
     
     private List<GameObject> activeEnemies = new List<GameObject>();
     
-    public void Spawn(int spawnPrefabIndex)
+    public GameObject Spawn(int spawnPrefabIndex)
     {
-        Spawn(spawnPrefabIndex, 0);
+        return Spawn(spawnPrefabIndex, 0);
     }
-    public void Spawn(int spawnPrefabIndex, int spawnPointIndex)
+    public GameObject Spawn(int spawnPrefabIndex, int spawnPointIndex)
     {
         // 1. Store the newly created enemy in a variable
         GameObject newEnemy = Instantiate(spawnPrefabs[spawnPrefabIndex],
@@ -22,6 +22,7 @@ public class SpawnManager : MonoSingleton<SpawnManager>
 
         // 2. Add that enemy to your tracking list
         activeEnemies.Add(newEnemy);
+        return newEnemy;
     }
 
     public void DestroyEnemy(GameObject go)
