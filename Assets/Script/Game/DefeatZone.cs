@@ -7,7 +7,7 @@ public class DefeatZone : MonoBehaviour
     private Health health;
 
     [Header("Lose UI")]
-    [SerializeField] private GameObject looseGameCanvas;
+    [SerializeField] private GameObject loseGameCanvas;
     [SerializeField] private bool pauseOnDefeat = true;
 
     private bool isDefeated;
@@ -16,15 +16,15 @@ public class DefeatZone : MonoBehaviour
     {
         health = GetComponent<Health>();
 
-        if (looseGameCanvas == null)
+        if (loseGameCanvas == null)
         {
-            GameObject found = GameObject.Find("Loose Game Canvas");
+            GameObject found = GameObject.Find("Lose Game Canvas");
             if (found != null)
-                looseGameCanvas = found;
+                loseGameCanvas = found;
         }
 
-        if (looseGameCanvas != null)
-            looseGameCanvas.SetActive(false);
+        if (loseGameCanvas != null)
+            loseGameCanvas.SetActive(false);
     }
 
     private void OnEnable()
@@ -57,8 +57,8 @@ public class DefeatZone : MonoBehaviour
         if (isDefeated) return;
         isDefeated = true;
 
-        if (looseGameCanvas != null)
-            looseGameCanvas.SetActive(true);
+        if (loseGameCanvas != null)
+            loseGameCanvas.SetActive(true);
 
         if (pauseOnDefeat)
             Time.timeScale = 0f;

@@ -4,9 +4,9 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Place on Lose Game Canvas. While this canvas is active (gate health lost), Space or the You Lose Button call <see cref="GoToMainMenu"/>.
+/// Place on Loose Game Canvas. While this canvas is active (gate health lost), Space or the You Loose Button call <see cref="GoToMainMenu"/>.
 /// </summary>
-public class YouLoseCanvasMenu : MonoBehaviour
+public class YouLooseCanvasMenu : MonoBehaviour
 {
     [SerializeField] private string mainMenuSceneName = "Main Menu";
 
@@ -27,7 +27,7 @@ public class YouLoseCanvasMenu : MonoBehaviour
 
         if (string.IsNullOrEmpty(mainMenuSceneName))
         {
-            Debug.LogError("YouLoseCanvasMenu: Assign main menu scene name.");
+            Debug.LogError("YouLooseCanvasMenu: Assign main menu scene name.");
             return;
         }
 

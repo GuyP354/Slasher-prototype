@@ -25,4 +25,16 @@ public class BloodInventory : MonoSingleton<BloodInventory>
         CurrentBlood -= cost;
         return true;
     }
+
+    /// <summary>Pulls every <see cref="BloodPickup"/> in the loaded scene into the inventory (used by possess).</summary>
+    public void AbsorbAllBloodPickupsInScene()
+    {
+        BloodPickup[] pickups = FindObjectsByType<BloodPickup>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        foreach (BloodPickup p in pickups)
+        {
+            if (p == null) continue;
+            AddBlood(p.BloodValue);
+            Destroy(p.gameObject);
+        }
+    }
 }

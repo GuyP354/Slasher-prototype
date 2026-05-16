@@ -35,7 +35,24 @@ public class Wave : MonoBehaviour
             return;
         }
         waitingForNextEvent = true;
-        Debug.Log("Press E to start wave");
+    }
+
+    /// <summary>Begins the current waiting segment (used for the first E at the lever; later segments still use E in Update).</summary>
+    public bool TryBeginWaitingEvent()
+    {
+        if (!isPlaying || !waitingForNextEvent || !advanceAllowed)
+            return false;
+
+        waitingForNextEvent = false;
+        if (events.Count == 0)
+        {
+            FinishWave();
+            return false;
+        }
+
+        events[0].StartEvent();
+        WaveElementStarted?.Invoke();
+        return true;
     }
     private void Update()
     {
@@ -44,16 +61,7 @@ public class Wave : MonoBehaviour
         if (waitingForNextEvent)
         {
             if (Input.GetKeyDown(KeyCode.E) && advanceAllowed)
-            {
-                waitingForNextEvent = false;
-                if (events.Count == 0)
-                    FinishWave();
-                else
-                {
-                    events[0].StartEvent();
-                    WaveElementStarted?.Invoke();
-                }
-            }
+                TryBeginWaitingEvent();
             return;
         }
         // Run current event
@@ -82,7 +90,10 @@ public class Wave : MonoBehaviour
     public string GetEventInfo()
     {
         if (totalEvents <= 0)
-            return "0/0";
+            return "0";
+
+        if (waitingForNextEvent)
+            return completedEvents + "/" + totalEvents;
 
         if (events.Count == 0)
             return totalEvents + "/" + totalEvents;
@@ -92,30 +103,20 @@ public class Wave : MonoBehaviour
     [System.Serializable]
     public class WaveEvent
     {
-        public float duration = 15.0f;
         public List<SpawnInfo> spawnInfos = new();
-        private float startTime;
         private readonly List<GameObject> spawnedThisEvent = new();
         public void StartEvent()
         {
-            startTime = Time.time;
             spawnedThisEvent.Clear();
             foreach (var info in spawnInfos)
                 info.Initialize();
         }
         public bool RunEvent()
         {
-            // If this element doesn't spawn anything, fall back to time duration.
             if (spawnInfos.Count == 0)
-            {
-                if (duration == 0.0f)
-                    return false;
-                if (duration != 0.0f && Time.time - startTime > duration)
-                    return false;
-                return true;
-            }
+                return false;
 
-            // Spawning elements: keep running until all spawnInfos are depleted.
+            // Keep running until all spawnInfos are depleted and their spawned enemies are gone.
             for (int i = 0; i < spawnInfos.Count; i++)
             {
                 GameObject spawned = spawnInfos[i].ReadyToSpawn();

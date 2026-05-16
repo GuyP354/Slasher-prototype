@@ -101,7 +101,7 @@ public class WaveGate : MonoBehaviour
         {
             waveStarted = true;
             Close();
-            waveToStart.StartWave();
+            LevelManager.Instance.StartWaveFromPlayerInteraction();
         }
     }
 
@@ -194,6 +194,8 @@ public class WaveGate : MonoBehaviour
 
     private void HandleWaveElementEnded(bool waveFullyComplete)
     {
-        Open();
+        // Passable at level start (Awake) and only after the full wave: all segments spawned and cleared.
+        if (waveFullyComplete)
+            Open();
     }
 }

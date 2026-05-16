@@ -6,6 +6,8 @@ public class BloodPickup : MonoBehaviour
     [SerializeField] private string playerTag = "Player";
     [SerializeField] private int bloodValue = 1;
 
+    public int BloodValue => bloodValue;
+
     private void Reset()
     {
         Collider c = GetComponent<Collider>();

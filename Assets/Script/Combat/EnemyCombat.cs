@@ -6,6 +6,7 @@ public partial class EnemyCombat : MonoBehaviour
 {
     [Header("Tags")]
     [SerializeField] private string objectiveTag = "Target";
+    [SerializeField] private string enemyTag = "Enemy";
     [SerializeField] private ArrayList obstacleTags = new ArrayList {"Obstacle", "Target"};
 
     [Header("Detection (planar / horizontal priority)")]
@@ -29,6 +30,7 @@ public partial class EnemyCombat : MonoBehaviour
     private float nextScanTime;
     private float nextAttackTime;
     private Health health;
+    private PossessedEnemy possessedCached;
 
     // Non-alloc scan buffer (increase if you expect many obstacles clustered)
     private readonly Collider[] hits = new Collider[24];
@@ -37,6 +39,13 @@ public partial class EnemyCombat : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         health = GetComponent<Health>();
+        possessedCached = GetComponent<PossessedEnemy>();
+    }
+
+    /// <summary>Call after <see cref="PossessedEnemy"/> is added at runtime so possession AI applies immediately.</summary>
+    public void RefreshPossessedState()
+    {
+        possessedCached = GetComponent<PossessedEnemy>();
     }
 
     private void OnEnable()
@@ -67,6 +76,12 @@ public partial class EnemyCombat : MonoBehaviour
 
     private void Update()
     {
+        if (possessedCached != null)
+        {
+            UpdatePossessedEnemy();
+            return;
+        }
+
         if (objective == null) CacheObjective();
         if (objective == null) return;
 
@@ -79,7 +94,7 @@ public partial class EnemyCombat : MonoBehaviour
         if (Time.time >= nextScanTime)
         {
             nextScanTime = Time.time + scanInterval;
-            currentObstacle = FindBestObstacleInRange();
+            currentObstacle = FindClosestPossessedEnemyInRange() ?? FindBestObstacleInRange();
         }
 
         if (currentObstacle != null)
@@ -102,6 +117,108 @@ public partial class EnemyCombat : MonoBehaviour
             agent.isStopped = false;
             agent.SetDestination(objective.position);
         }
+    }
+
+    private void UpdatePossessedEnemy()
+    {
+        if (objective == null) CacheObjective();
+
+        if (Time.time >= nextScanTime)
+        {
+            nextScanTime = Time.time + scanInterval;
+            currentObstacle = FindNearestOtherEnemyTransform();
+        }
+
+        if (currentObstacle != null)
+        {
+            float planarToObstacle = PlanarDistance(transform.position, currentObstacle.position);
+
+            if (planarToObstacle <= attackRange)
+            {
+                agent.isStopped = true;
+                TryAttack(currentObstacle);
+            }
+            else
+            {
+                agent.isStopped = false;
+                agent.SetDestination(currentObstacle.position);
+            }
+        }
+        else if (objective != null)
+        {
+            agent.isStopped = false;
+            agent.SetDestination(objective.position);
+        }
+        else
+        {
+            agent.isStopped = true;
+        }
+    }
+
+    private Transform FindClosestPossessedEnemyInRange()
+    {
+        int count = Physics.OverlapSphereNonAlloc(transform.position, detectionRange, hits, obstacleLayers);
+
+        Transform best = null;
+        float bestDist = float.PositiveInfinity;
+
+        for (int i = 0; i < count; i++)
+        {
+            Collider c = hits[i];
+            if (!c) continue;
+
+            PossessedEnemy pe = c.GetComponentInParent<PossessedEnemy>();
+            if (pe == null || pe.gameObject == gameObject) continue;
+
+            Transform t = pe.transform;
+            float d = PlanarDistance(transform.position, t.position);
+            if (d < bestDist)
+            {
+                bestDist = d;
+                best = t;
+            }
+        }
+
+        return best;
+    }
+
+    private Transform FindNearestOtherEnemyTransform()
+    {
+        int count = Physics.OverlapSphereNonAlloc(transform.position, detectionRange, hits, obstacleLayers);
+
+        Transform best = null;
+        float bestDist = float.PositiveInfinity;
+
+        for (int i = 0; i < count; i++)
+        {
+            Collider c = hits[i];
+            if (!c) continue;
+
+            Transform enemyRoot = FindTaggedRootTransform(c.transform, enemyTag);
+            if (enemyRoot == null || enemyRoot.gameObject == gameObject) continue;
+
+            float d = PlanarDistance(transform.position, enemyRoot.position);
+            if (d < bestDist)
+            {
+                bestDist = d;
+                best = enemyRoot;
+            }
+        }
+
+        return best;
+    }
+
+    private static Transform FindTaggedRootTransform(Transform t, string tag)
+    {
+        Transform walk = t;
+        while (walk != null)
+        {
+            if (walk.CompareTag(tag))
+                return walk;
+            walk = walk.parent;
+        }
+
+        return null;
     }
 
     private void CacheObjective()

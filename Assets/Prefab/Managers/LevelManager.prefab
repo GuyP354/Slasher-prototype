@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4185653742714060393}
   - component: {fileID: 121533627830622619}
+  - component: {fileID: 990011003}
   m_Layer: 0
   m_Name: LevelManager
   m_TagString: Untagged
@@ -29,7 +30,8 @@ Transform:
   m_LocalPosition: {x: 18.58, y: 2.22, z: 22.24}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 990011002}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 187.626, z: 0}
 --- !u!114 &121533627830622619
@@ -44,3 +46,50 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1324f04907b7a184f9382fe22eb1a1b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelManager
+--- !u!1 &990011001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 990011002}
+  m_Layer: 0
+  m_Name: PossessSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &990011002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 990011001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4185653742714060393}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &990011003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8948468709185395199}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2b4c6d8e0f124438899aabbccddeeff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PossessRoundCoordinator
+  possessSpawner: {fileID: 990011002}
+  lazerBeamPrefab: {fileID: 7700010000000000001, guid: bccddeef00112233445566778899aa00, type: 3}
+  minDelayAfterEventStart: 10
+  maxDelayAfterEventStart: 50

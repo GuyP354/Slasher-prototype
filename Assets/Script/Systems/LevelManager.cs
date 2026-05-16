@@ -44,11 +44,11 @@ public class LevelManager : MonoSingleton<LevelManager>
 
     private IEnumerator Start()
     {
-        // Wait one frame so scene managers/UI are initialized before starting.
+        // Wait one frame so scene managers/UI are initialized before showing idle wave UI.
         yield return null;
 
-        if (!waveActive && waves.Count > 0)
-            StartWave();
+        if (uiManager != null)
+            uiManager.UpdateWaveDisplay(0);
     }
 
     private void Update()
@@ -78,16 +78,25 @@ public class LevelManager : MonoSingleton<LevelManager>
         }
     }
 
+    /// <summary>Called when the player presses E at the lever / wave gate. Starts round 1 and the first spawn segment.</summary>
+    public void StartWaveFromPlayerInteraction()
+    {
+        if (waveActive || waves.Count == 0)
+            return;
+
+        StartWave();
+        waves[0].TryBeginWaitingEvent();
+    }
+
     private void StartWave()
     {
         if (waves.Count > 0)
         {
-            currentWave++; // Increment the counter
+            currentWave++;
             waves[0].StartWave();
             spawnActive = true;
             waveActive = true;
-            
-            // Initial UI Update
+
             if (uiManager != null)
                 uiManager.UpdateWaveDisplay(0);
         }
@@ -119,7 +128,7 @@ public class LevelManager : MonoSingleton<LevelManager>
         if (waveActive && waves.Count > 0)
             return waves[0].GetEventInfo();
 
-        return "0/0";
+        return "0";
     }
 
     private void Defeat()
