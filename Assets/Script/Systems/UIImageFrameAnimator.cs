@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,10 +11,13 @@ public class UIImageFrameAnimator : MonoBehaviour
     [SerializeField] private bool playOnEnable = true;
     [SerializeField] private bool useUnscaledTime = false;
 
+    public event Action OnNonLoopFinished;
+
     private Image targetImage;
     private int frameIndex;
     private float timer;
     private bool playing;
+    private bool finishedEventSent;
 
     private void Awake()
     {
@@ -51,6 +55,7 @@ public class UIImageFrameAnimator : MonoBehaviour
                 {
                     frameIndex = frames.Length - 1;
                     playing = false;
+                    NotifyNonLoopFinished();
                 }
             }
 
@@ -66,6 +71,7 @@ public class UIImageFrameAnimator : MonoBehaviour
         {
             frameIndex = 0;
             timer = 0f;
+            finishedEventSent = false;
             ApplyFrame();
         }
 
@@ -77,11 +83,27 @@ public class UIImageFrameAnimator : MonoBehaviour
         playing = false;
     }
 
+    public void SetLoop(bool shouldLoop)
+    {
+        loop = shouldLoop;
+        if (loop)
+            finishedEventSent = false;
+    }
+
     private void ApplyFrame()
     {
         if (targetImage == null) return;
         if (frames == null || frames.Length == 0) return;
         frameIndex = Mathf.Clamp(frameIndex, 0, frames.Length - 1);
         targetImage.sprite = frames[frameIndex];
+    }
+
+    private void NotifyNonLoopFinished()
+    {
+        if (finishedEventSent || loop)
+            return;
+
+        finishedEventSent = true;
+        OnNonLoopFinished?.Invoke();
     }
 }
