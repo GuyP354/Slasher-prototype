@@ -1,10 +1,15 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 
 public class LevelManager : MonoSingleton<LevelManager>
 {
+    public event Action WaveStarted;
+    public event Action WaveCompleted;
     [SerializeField] private int lifePoint = 10;
+    [Header("Wave Start")]
+    [SerializeField] private float nextWaveStartCooldownSeconds = 10f;
     [Header("Victory UI")]
     [SerializeField] private GameObject victoryCanvas;
     [SerializeField] private bool pauseOnVictory = true;
@@ -16,8 +21,20 @@ public class LevelManager : MonoSingleton<LevelManager>
     private bool waveActive = false;
     private bool levelEnded = false;
     private bool pendingFinalVictoryCheck = false;
+    private float nextWaveCanStartAt = 0f;
     private List<Wave> waves = new List<Wave>();
     private UIManager uiManager;
+
+    public bool IsWaveActive => waveActive;
+
+    /// <summary>True when the player can press E at the lever to begin a wave round (not mid-wave, cooldown elapsed).</summary>
+    public bool CanStartWaveFromInteraction()
+    {
+        if (waveActive || waves.Count == 0)
+            return false;
+
+        return Time.time >= nextWaveCanStartAt;
+    }
 
     
     public override void Init() 
@@ -48,7 +65,7 @@ public class LevelManager : MonoSingleton<LevelManager>
         yield return null;
 
         if (uiManager != null)
-            uiManager.UpdateWaveDisplay(0);
+            uiManager.UpdateWaveDisplay(0, 0);
     }
 
     private void Update()
@@ -58,34 +75,39 @@ public class LevelManager : MonoSingleton<LevelManager>
 
         if (waveActive)
         {
-            int enemyCount = GameObject.FindGameObjectsWithTag("Enemy").Length;
+            int remainingSpawns = waves.Count > 0 ? waves[0].GetCurrentElementRemainingSpawns() : 0;
+            int aliveEnemies = waves.Count > 0 ? waves[0].GetCurrentElementAliveEnemies() : 0;
             if (uiManager != null)
-                uiManager.UpdateWaveDisplay(enemyCount);
+                uiManager.UpdateWaveDisplay(remainingSpawns, aliveEnemies);
 
-            if (!spawnActive && enemyCount == 0)
+            if (!spawnActive && aliveEnemies == 0 && remainingSpawns == 0)
             {
                 waveActive = false;
                 Debug.Log("Wave cleared");
-                
+
                 if (pendingFinalVictoryCheck)
-                    TryTriggerVictory(enemyCount);
+                    TryTriggerVictory(0);
             }
         }
 
         if (pendingFinalVictoryCheck)
         {
-            TryTriggerVictory(GameObject.FindGameObjectsWithTag("Enemy").Length);
+            int aliveEnemies = GameObject.FindGameObjectsWithTag("Enemy").Length;
+            TryTriggerVictory(aliveEnemies);
         }
     }
 
-    /// <summary>Called when the player presses E at the lever / wave gate. Starts round 1 and the first spawn segment.</summary>
-    public void StartWaveFromPlayerInteraction()
+    /// <summary>Called when the player presses E at the lever / wave gate. Starts the wave round and first element.</summary>
+    public bool TryStartWaveFromPlayerInteraction()
     {
         if (waveActive || waves.Count == 0)
-            return;
+            return false;
+        if (Time.time < nextWaveCanStartAt)
+            return false;
 
         StartWave();
         waves[0].TryBeginWaitingEvent();
+        return true;
     }
 
     private void StartWave()
@@ -98,7 +120,9 @@ public class LevelManager : MonoSingleton<LevelManager>
             waveActive = true;
 
             if (uiManager != null)
-                uiManager.UpdateWaveDisplay(0);
+                uiManager.UpdateWaveDisplay(0, 0);
+
+            WaveStarted?.Invoke();
         }
     }
 
@@ -111,9 +135,12 @@ public class LevelManager : MonoSingleton<LevelManager>
         Wave waveToDestroy = waves[0];
         waves.RemoveAt(0);
         Destroy(waveToDestroy);
-        
+
+        waveActive = false;
         spawnActive = false;
+        nextWaveCanStartAt = Time.time + Mathf.Max(0f, nextWaveStartCooldownSeconds);
         pendingFinalVictoryCheck = waves.Count == 0;
+        WaveCompleted?.Invoke();
     }
 
     public void EnemyCrossed()

@@ -25,9 +25,16 @@ public class UIManager : MonoSingleton<UIManager>
         ForceUpdateBlood();
     }
 
-    public void UpdateWaveDisplay(int enemyCount)
+    /// <summary>
+    /// Updates wave UI. During an active element, remainingSpawns is spawn quota left and aliveEnemies
+    /// is enemies spawned by that element that are still alive (gate opens only when both are 0).
+    /// </summary>
+    public void UpdateWaveDisplay(int remainingSpawns, int aliveEnemies)
     {
         string waveInfo = LevelManager.Instance.GetWaveInfo();
+        if (LevelManager.Instance.IsWaveActive)
+            waveInfo = waveInfo + " | " + remainingSpawns;
+
         ApplyWaveText(currentWaveText, waveInfo);
 
         if (additionalWaveTexts != null)
@@ -37,7 +44,7 @@ public class UIManager : MonoSingleton<UIManager>
         }
 
         if (enemiesAliveText != null)
-            enemiesAliveText.text = enemyCount.ToString();
+            enemiesAliveText.text = aliveEnemies.ToString();
         ForceUpdateBlood();
     }
 

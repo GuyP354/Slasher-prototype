@@ -5,16 +5,11 @@ public class WaveGate : MonoBehaviour
     [Header("Wave")]
     [SerializeField] private Wave waveToStart;
 
-    [Header("Passage (never destroyed)")]
-    [Tooltip("Assign a BoxCollider child, or leave empty to auto-create \"PassageBarrier\". Only this collider's isTrigger follows the wave.")]
-    [SerializeField] private BoxCollider passageBarrier;
-    [SerializeField] private Vector3 passageBarrierLocalSize = new Vector3(3f, 4f, 0.35f);
-    [SerializeField] private Vector3 passageBarrierLocalCenter = Vector3.zero;
+    [Header("Gate passage (child Box Collider)")]
+    [Tooltip("Disabled = open (passable). Enabled = closed (blocks passage).")]
+    [SerializeField] private BoxCollider gateBoxCollider;
 
-    [Header("Optional visuals (not driven by wave)")]
-    [SerializeField] private MeshCollider gateMeshCollider;
-
-    [Header("Blocking")]
+    [Header("Blocking (optional extras)")]
     [SerializeField] private Collider[] blockingColliders;
     [SerializeField] private UnityEngine.AI.NavMeshObstacle navObstacle;
 
@@ -24,51 +19,26 @@ public class WaveGate : MonoBehaviour
     [SerializeField] private KeyCode interactKey = KeyCode.E;
     [SerializeField] private Collider interactionArea;
 
-    private bool waveStarted;
-    private bool idleIsTrigger;
-
     private Transform player;
-    private bool isClosed;
+
+    /// <summary>True when the player can press E here to start a new wave round (gate open, cooldown done).</summary>
+    public bool IsWaveStartInteractionAvailable =>
+        LevelManager.Instance != null && LevelManager.Instance.CanStartWaveFromInteraction();
 
     private void Awake()
     {
-        if (gateMeshCollider == null)
-            gateMeshCollider = GetComponent<MeshCollider>();
-
-        EnsurePassageBarrier();
-
-        idleIsTrigger = true;
-        Open();
-    }
-
-    private void EnsurePassageBarrier()
-    {
-        if (passageBarrier != null)
-            return;
-
-        Transform existing = transform.Find("PassageBarrier");
-        if (existing != null)
-        {
-            passageBarrier = existing.GetComponent<BoxCollider>();
-            if (passageBarrier != null)
-                return;
-        }
-
-        var go = new GameObject("PassageBarrier");
-        go.transform.SetParent(transform, false);
-        go.transform.localPosition = passageBarrierLocalCenter;
-        go.transform.localRotation = Quaternion.identity;
-        go.transform.localScale = Vector3.one;
-        go.layer = gameObject.layer;
-
-        passageBarrier = go.AddComponent<BoxCollider>();
-        passageBarrier.size = passageBarrierLocalSize;
-        passageBarrier.center = Vector3.zero;
-        passageBarrier.isTrigger = true;
+        ResolveGateBoxCollider();
+        ApplyOpenState();
     }
 
     private void OnEnable()
     {
+        if (LevelManager.Instance != null)
+        {
+            LevelManager.Instance.WaveStarted += HandleWaveStarted;
+            LevelManager.Instance.WaveCompleted += HandleWaveCompleted;
+        }
+
         if (waveToStart == null) return;
 
         waveToStart.WaveElementStarted += HandleWaveElementStarted;
@@ -77,6 +47,12 @@ public class WaveGate : MonoBehaviour
 
     private void OnDisable()
     {
+        if (LevelManager.Instance != null)
+        {
+            LevelManager.Instance.WaveStarted -= HandleWaveStarted;
+            LevelManager.Instance.WaveCompleted -= HandleWaveCompleted;
+        }
+
         if (waveToStart == null) return;
 
         waveToStart.WaveElementStarted -= HandleWaveElementStarted;
@@ -93,16 +69,36 @@ public class WaveGate : MonoBehaviour
         if (waveToStart != null)
             waveToStart.SetAdvanceAllowed(playerInArea);
 
-        if (waveStarted) return;
-
         if (!playerInArea) return;
 
-        if (Input.GetKeyDown(interactKey) && waveToStart != null)
+        if (!Input.GetKeyDown(interactKey) || waveToStart == null || LevelManager.Instance == null)
+            return;
+
+        if (LevelManager.Instance.CanStartWaveFromInteraction())
+            LevelManager.Instance.TryStartWaveFromPlayerInteraction();
+    }
+
+    private void ResolveGateBoxCollider()
+    {
+        if (gateBoxCollider != null)
+            return;
+
+        Transform child = transform.Find("Gate Box Collider");
+        if (child != null)
+            gateBoxCollider = child.GetComponent<BoxCollider>();
+
+        if (gateBoxCollider == null)
         {
-            waveStarted = true;
-            Close();
-            LevelManager.Instance.StartWaveFromPlayerInteraction();
+            child = transform.Find("PassageBarrier");
+            if (child != null)
+                gateBoxCollider = child.GetComponent<BoxCollider>();
         }
+
+        if (gateBoxCollider == null)
+            gateBoxCollider = GetComponentInChildren<BoxCollider>(true);
+
+        if (gateBoxCollider != null)
+            gateBoxCollider.isTrigger = false;
     }
 
     private void CachePlayer()
@@ -149,11 +145,8 @@ public class WaveGate : MonoBehaviour
         return false;
     }
 
-    private void Close()
+    private void ApplyClosedState()
     {
-        if (isClosed) return;
-        isClosed = true;
-
         if (blockingColliders != null)
         {
             for (int i = 0; i < blockingColliders.Length; i++)
@@ -162,13 +155,12 @@ public class WaveGate : MonoBehaviour
 
         if (navObstacle != null) navObstacle.enabled = true;
 
-        SetPassageSolid(true);
+        if (gateBoxCollider != null)
+            gateBoxCollider.enabled = true;
     }
 
-    private void Open()
+    private void ApplyOpenState()
     {
-        isClosed = false;
-
         if (blockingColliders != null)
         {
             for (int i = 0; i < blockingColliders.Length; i++)
@@ -177,25 +169,27 @@ public class WaveGate : MonoBehaviour
 
         if (navObstacle != null) navObstacle.enabled = false;
 
-        SetPassageSolid(false);
+        if (gateBoxCollider != null)
+            gateBoxCollider.enabled = false;
     }
 
-    private void SetPassageSolid(bool solid)
+    private void HandleWaveStarted()
     {
-        if (passageBarrier == null)
-            return;
-        passageBarrier.isTrigger = !solid && idleIsTrigger;
+        ApplyClosedState();
     }
 
     private void HandleWaveElementStarted()
     {
-        Close();
+        ApplyClosedState();
     }
 
     private void HandleWaveElementEnded(bool waveFullyComplete)
     {
-        // Passable at level start (Awake) and only after the full wave: all segments spawned and cleared.
-        if (waveFullyComplete)
-            Open();
+        ApplyOpenState();
+    }
+
+    private void HandleWaveCompleted()
+    {
+        ApplyOpenState();
     }
 }

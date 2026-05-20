@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+
 public class Wave : MonoBehaviour
 {
     public List<WaveEvent> events = new();
@@ -11,7 +12,29 @@ public class Wave : MonoBehaviour
     private bool waitingForNextEvent;
     private int totalEvents;
     private int completedEvents;
+
     public void SetAdvanceAllowed(bool allowed) => advanceAllowed = allowed;
+
+    public bool IsWaitingForNextEvent => isPlaying && waitingForNextEvent;
+
+    /// <summary>Remaining spawn quota for the active element (sum of SpawnInfo.amount).</summary>
+    public int GetCurrentElementRemainingSpawns()
+    {
+        if (!isPlaying || waitingForNextEvent || events.Count == 0)
+            return 0;
+
+        return events[0].GetRemainingSpawnCount();
+    }
+
+    /// <summary>Enemies spawned by the active element that are still alive.</summary>
+    public int GetCurrentElementAliveEnemies()
+    {
+        if (!isPlaying || waitingForNextEvent || events.Count == 0)
+            return 0;
+
+        return events[0].GetAliveSpawnedCount();
+    }
+
     private void FinishWave()
     {
         if (!isPlaying)
@@ -54,22 +77,24 @@ public class Wave : MonoBehaviour
         WaveElementStarted?.Invoke();
         return true;
     }
+
     private void Update()
     {
         if (!isPlaying) return;
-        // If we finished an event, wait for E to start the next one
+
         if (waitingForNextEvent)
         {
             if (Input.GetKeyDown(KeyCode.E) && advanceAllowed)
                 TryBeginWaitingEvent();
             return;
         }
-        // Run current event
+
         if (events.Count == 0)
         {
             FinishWave();
             return;
         }
+
         if (!events[0].RunEvent())
         {
             Debug.Log("End Event");
@@ -100,50 +125,79 @@ public class Wave : MonoBehaviour
 
         return (completedEvents + 1) + "/" + totalEvents;
     }
+
     [System.Serializable]
     public class WaveEvent
     {
         public List<SpawnInfo> spawnInfos = new();
         private readonly List<GameObject> spawnedThisEvent = new();
+
         public void StartEvent()
         {
             spawnedThisEvent.Clear();
-            foreach (var info in spawnInfos)
-                info.Initialize();
+            foreach (SpawnInfo info in spawnInfos)
+                info.ResetForEvent();
         }
+
+        public int GetRemainingSpawnCount()
+        {
+            int remaining = 0;
+            for (int i = 0; i < spawnInfos.Count; i++)
+                remaining += spawnInfos[i].RemainingAmount;
+            return remaining;
+        }
+
+        public int GetAliveSpawnedCount()
+        {
+            PruneSpawnedEnemies();
+            return spawnedThisEvent.Count;
+        }
+
+        /// <summary>Returns true while the element is still running; false when it is complete.</summary>
         public bool RunEvent()
         {
-            if (spawnInfos.Count == 0)
-                return false;
-
-            // Keep running until all spawnInfos are depleted and their spawned enemies are gone.
             for (int i = 0; i < spawnInfos.Count; i++)
             {
                 GameObject spawned = spawnInfos[i].ReadyToSpawn();
                 if (spawned != null)
                     spawnedThisEvent.Add(spawned);
-                if (spawnInfos[i].amount <= 0)
+
+                if (spawnInfos[i].RemainingAmount <= 0)
                 {
                     spawnInfos.RemoveAt(i);
                     i--;
                 }
             }
 
-            // Spawning finished: end only when enemies spawned by THIS event are all gone.
-            if (spawnInfos.Count == 0)
-            {
-                for (int i = spawnedThisEvent.Count - 1; i >= 0; i--)
-                {
-                    if (spawnedThisEvent[i] == null)
-                        spawnedThisEvent.RemoveAt(i);
-                }
+            PruneSpawnedEnemies();
 
-                if (spawnedThisEvent.Count == 0)
-                    return false;
-            }
+            if (spawnInfos.Count > 0)
+                return true;
 
-            return true;
+            return spawnedThisEvent.Count > 0;
         }
+
+        private void PruneSpawnedEnemies()
+        {
+            for (int i = spawnedThisEvent.Count - 1; i >= 0; i--)
+            {
+                if (!IsSpawnedEnemyAlive(spawnedThisEvent[i]))
+                    spawnedThisEvent.RemoveAt(i);
+            }
+        }
+
+        private static bool IsSpawnedEnemyAlive(GameObject enemy)
+        {
+            if (enemy == null)
+                return false;
+
+            Health health = enemy.GetComponent<Health>();
+            if (health != null)
+                return health.CurrentHealth > 0;
+
+            return enemy.activeInHierarchy;
+        }
+
         [System.Serializable]
         public class SpawnInfo
         {
@@ -151,24 +205,36 @@ public class Wave : MonoBehaviour
             public int spawnPrefabIndex = 0;
             public int amount = 10;
             public float interval = 1.0f;
+
+            private int initialAmount;
             private float lastTime;
-            public void Initialize()
+
+            public int RemainingAmount => amount;
+
+            public void ResetForEvent()
             {
+                if (initialAmount <= 0)
+                    initialAmount = amount;
+
+                amount = initialAmount;
                 lastTime = Time.time;
             }
+
             public GameObject ReadyToSpawn()
             {
-                if (amount <= 0) return null;
-                if (Time.time - lastTime >= interval)
-                {
-                    if (SpawnManager.Instance == null)
-                        return null;
-                    GameObject spawned = SpawnManager.Instance.Spawn(spawnPrefabIndex, spawnPointIndex);
-                    lastTime = Time.time;
-                    amount--;
-                    return spawned;
-                }
-                return null;
+                if (amount <= 0)
+                    return null;
+
+                if (Time.time - lastTime < interval)
+                    return null;
+
+                if (SpawnManager.Instance == null)
+                    return null;
+
+                GameObject spawned = SpawnManager.Instance.Spawn(spawnPrefabIndex, spawnPointIndex);
+                lastTime = Time.time;
+                amount--;
+                return spawned;
             }
         }
     }
