@@ -65,7 +65,7 @@ public class LevelManager : MonoSingleton<LevelManager>
         yield return null;
 
         if (uiManager != null)
-            uiManager.UpdateWaveDisplay(0, 0);
+            uiManager.UpdateWaveDisplay(0);
     }
 
     private void Update()
@@ -78,7 +78,7 @@ public class LevelManager : MonoSingleton<LevelManager>
             int remainingSpawns = waves.Count > 0 ? waves[0].GetCurrentElementRemainingSpawns() : 0;
             int aliveEnemies = waves.Count > 0 ? waves[0].GetCurrentElementAliveEnemies() : 0;
             if (uiManager != null)
-                uiManager.UpdateWaveDisplay(remainingSpawns, aliveEnemies);
+                uiManager.UpdateWaveDisplay(aliveEnemies);
 
             if (!spawnActive && aliveEnemies == 0 && remainingSpawns == 0)
             {
@@ -120,7 +120,7 @@ public class LevelManager : MonoSingleton<LevelManager>
             waveActive = true;
 
             if (uiManager != null)
-                uiManager.UpdateWaveDisplay(0, 0);
+                uiManager.UpdateWaveDisplay(0);
 
             WaveStarted?.Invoke();
         }

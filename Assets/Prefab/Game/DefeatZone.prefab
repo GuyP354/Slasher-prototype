@@ -76,11 +76,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 3581683265808261464}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f57424fdd40bf5a47beb508c8d97263a, type: 3}
+  m_Script: {fileID: 11500000, guid: 4e2c8f1a9b3d5e7048a1c6f0d2e94b37, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Health
-  maxHealth: 50
-  destroyGameObjectOnDeath: 0
-  onDeath:
-    m_PersistentCalls:
-      m_Calls: []
+  m_EditorClassIdentifier: Assembly-CSharp::GateHealth
+  maxHealth: 400
+  loseGameCanvas: {fileID: 0}
+  pauseOnDefeat: 1

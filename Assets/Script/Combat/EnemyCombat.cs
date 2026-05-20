@@ -283,7 +283,13 @@ public partial class EnemyCombat : MonoBehaviour
 
         nextAttackTime = Time.time + (1f / attacksPerSecond);
 
-        // Deal damage if the obstacle has Health (below). If not, nothing happens.
+        GateHealth gateHp = target.GetComponentInParent<GateHealth>();
+        if (gateHp != null)
+        {
+            gateHp.TakeDamage(damagePerHit);
+            return;
+        }
+
         Health hp = target.GetComponentInParent<Health>();
         if (hp != null)
             hp.TakeDamage(damagePerHit);
