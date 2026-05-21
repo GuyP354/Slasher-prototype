@@ -4,7 +4,8 @@ using TMPro;
 
 public class BuildMode : MonoBehaviour
 {
-    private const float PREVIEW_DISTANCE_FROM_PLAYER = 3.0f;
+    [Header("Preview position")]
+    [SerializeField] private float previewDistanceFromPlayer = 5f;
 
     public const string RangerAreaTag = "RangerArea";
     public const string UnplaceableTag = "Unplaceable";
@@ -200,7 +201,7 @@ public class BuildMode : MonoBehaviour
             planarDirection = Vector3.left;
         planarDirection.Normalize();
 
-        Vector3 previewPosition = anchor.position + (planarDirection * PREVIEW_DISTANCE_FROM_PLAYER);
+        Vector3 previewPosition = anchor.position + (planarDirection * previewDistanceFromPlayer);
         previewPosition.y = anchor.position.y + previewHeightOffset;
         spawnPreview.transform.position = previewPosition;
 
@@ -236,7 +237,7 @@ public class BuildMode : MonoBehaviour
     {
         if (spawnPreview == null) return;
         Transform anchor = PreviewAnchor;
-        float maxDistance = PREVIEW_DISTANCE_FROM_PLAYER + 0.01f;
+        float maxDistance = previewDistanceFromPlayer + 0.01f;
         Vector3 anchorPos = anchor.position;
         Vector3 previewPos = spawnPreview.transform.position;
         float dx = anchorPos.x - previewPos.x;
@@ -322,6 +323,8 @@ public class BuildMode : MonoBehaviour
             od.enabled = false;
         foreach (var rd in spawnPreview.GetComponentsInChildren<RangerDefence>(true))
             rd.enabled = false;
+        foreach (var rangeAnim in spawnPreview.GetComponentsInChildren<CombatRangeAnimator>(true))
+            rangeAnim.enabled = false;
 
         previewRenderers = spawnPreview.GetComponentsInChildren<Renderer>(true);
         previewWithinPlacementRange = true;
@@ -633,22 +636,45 @@ public class BuildMode : MonoBehaviour
     private static bool TryGetFootprintBounds(GameObject root, out Bounds bounds)
     {
         bounds = default;
+        bool hasBounds = false;
+
         BoxCollider[] boxes = root.GetComponentsInChildren<BoxCollider>(true);
-        if (boxes.Length > 0)
+        for (int i = 0; i < boxes.Length; i++)
         {
-            bounds = boxes[0].bounds;
-            for (int j = 1; j < boxes.Length; j++)
-                bounds.Encapsulate(boxes[j].bounds);
-            return true;
+            BoxCollider box = boxes[i];
+            if (box == null)
+                continue;
+
+            if (!hasBounds)
+            {
+                bounds = box.bounds;
+                hasBounds = true;
+            }
+            else
+            {
+                bounds.Encapsulate(box.bounds);
+            }
         }
 
         Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
-        if (renderers.Length == 0)
-            return false;
-        bounds = renderers[0].bounds;
-        for (int j = 1; j < renderers.Length; j++)
-            bounds.Encapsulate(renderers[j].bounds);
-        return true;
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer renderer = renderers[i];
+            if (renderer == null)
+                continue;
+
+            if (!hasBounds)
+            {
+                bounds = renderer.bounds;
+                hasBounds = true;
+            }
+            else
+            {
+                bounds.Encapsulate(renderer.bounds);
+            }
+        }
+
+        return hasBounds;
     }
 
     private void ApplyPreviewMaterial()

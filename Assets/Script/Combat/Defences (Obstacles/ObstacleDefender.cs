@@ -6,30 +6,82 @@ public class ObstacleDefense : MonoBehaviour
     [SerializeField] private string enemyTag = "Enemy";
 
     [Header("Attack settings")]
-    [SerializeField] private float attackRange = 2.0f;      // melee radius
-    [SerializeField] private float attacksPerSecond = 1.0f; // fallback if cooldown is 0
+    [SerializeField] private float attackRange = 2.0f;
+    [SerializeField] private float attacksPerSecond = 1.0f;
     [SerializeField] private float attackCooldownSeconds = 12f;
     [SerializeField] private int damagePerHit = 10;
+
+    [Header("Animation")]
+    [Tooltip("How long the looping attack animation plays before returning to standstill for the damage cooldown.")]
+    [SerializeField] private float attackLoopDuration = 1f;
 
     [Header("Placement (Tower preview)")]
     [SerializeField] private float minSeparationFromOtherDefences = 20f;
 
     private float nextAttackTime;
+    private float attackVisualEndTime;
+    private CombatRangeAnimator combatAnimator;
 
     public float MinSeparationFromOtherDefences => minSeparationFromOtherDefences;
 
+    private void Awake()
+    {
+        combatAnimator = GetComponent<CombatRangeAnimator>();
+    }
+
     private void Update()
     {
-        if (Time.time < nextAttackTime) return;
+        bool targetInRange = FindEnemyInRange() != null;
+        UpdateCombatAnimation(targetInRange);
+
+        if (!targetInRange)
+            return;
+
+        if (Time.time < attackVisualEndTime)
+            return;
+
+        if (Time.time < nextAttackTime)
+            return;
 
         Collider target = FindEnemyInRange();
-        if (target != null)
+        if (target == null)
+            return;
+
+        float fallbackInterval = attacksPerSecond > 0f ? 1f / attacksPerSecond : 0f;
+        float cooldown = attackCooldownSeconds > 0f ? attackCooldownSeconds : fallbackInterval;
+        attackVisualEndTime = Time.time + Mathf.Max(0.05f, attackLoopDuration);
+        nextAttackTime = Time.time + cooldown;
+        SetAttackAnimation(true);
+        DealDamage(target);
+    }
+
+    private void UpdateCombatAnimation(bool targetInRange)
+    {
+        if (!targetInRange)
         {
-            float fallbackInterval = attacksPerSecond > 0f ? 1f / attacksPerSecond : 0f;
-            float cooldown = attackCooldownSeconds > 0f ? attackCooldownSeconds : fallbackInterval;
-            nextAttackTime = Time.time + cooldown;
-            DealDamage(target);
+            SetAttackAnimation(false);
+            return;
         }
+
+        if (Time.time < attackVisualEndTime)
+        {
+            SetAttackAnimation(true);
+            return;
+        }
+
+        if (Time.time < nextAttackTime)
+        {
+            SetAttackAnimation(false);
+            return;
+        }
+
+        SetAttackAnimation(false);
+    }
+
+    private void SetAttackAnimation(bool showAttackLoop)
+    {
+        if (combatAnimator != null)
+            combatAnimator.SetEngaged(showAttackLoop);
     }
 
     private Collider FindEnemyInRange()
@@ -58,9 +110,7 @@ public class ObstacleDefense : MonoBehaviour
     {
         Health hp = enemyCollider.GetComponentInParent<Health>();
         if (hp != null)
-        {
             hp.TakeDamage(damagePerHit);
-        }
     }
 
     private void OnDrawGizmosSelected()
