@@ -1,7 +1,17 @@
+using System.Collections;
 using UnityEngine;
 
 public class WaveGate : MonoBehaviour
 {
+    [System.Serializable]
+    private class GateVisualPair
+    {
+        public GameObject planningVisual;
+        public GameObject reverseVisual;
+        public GateFrameAnimator planningAnimator;
+        public GateFrameAnimator reverseAnimator;
+    }
+
     [Header("Wave")]
     [SerializeField] private Wave waveToStart;
 
@@ -13,6 +23,11 @@ public class WaveGate : MonoBehaviour
     [SerializeField] private Collider[] blockingColliders;
     [SerializeField] private UnityEngine.AI.NavMeshObstacle navObstacle;
 
+    [Header("Gate visuals")]
+    [SerializeField] private Transform gateVisualsRoot;
+    [SerializeField] private GateVisualPair primaryGate = new();
+    [SerializeField] private GateVisualPair secondaryGate = new();
+
     [Header("Interaction")]
     [SerializeField] private string playerTag = "Player";
     [SerializeField] private Transform playerTransform;
@@ -20,43 +35,50 @@ public class WaveGate : MonoBehaviour
     [SerializeField] private Collider interactionArea;
 
     private Transform player;
-
-    /// <summary>True when the player can press E here to start a new wave round (gate open, cooldown done).</summary>
-    public bool IsWaveStartInteractionAvailable =>
-        LevelManager.Instance != null && LevelManager.Instance.CanStartWaveFromInteraction();
+    private Coroutine gateVisualRoutine;
 
     private void Awake()
     {
         ResolveGateBoxCollider();
+        ResolveGateVisuals();
         ApplyOpenState();
+        SetPlanningVisible(true);
+    }
+
+    private IEnumerator Start()
+    {
+        yield return null;
+        PlayOpenAnimations();
     }
 
     private void OnEnable()
     {
         if (LevelManager.Instance != null)
         {
-            LevelManager.Instance.WaveStarted += HandleWaveStarted;
-            LevelManager.Instance.WaveCompleted += HandleWaveCompleted;
+            LevelManager.Instance.WaveStarted += OnWaveStarted;
+            LevelManager.Instance.WaveCompleted += OnWaveCompleted;
         }
 
-        if (waveToStart == null) return;
+        if (waveToStart == null)
+            return;
 
-        waveToStart.WaveElementStarted += HandleWaveElementStarted;
-        waveToStart.WaveElementEnded += HandleWaveElementEnded;
+        waveToStart.WaveElementStarted += OnWaveElementStarted;
+        waveToStart.WaveElementEnded += OnWaveElementEnded;
     }
 
     private void OnDisable()
     {
         if (LevelManager.Instance != null)
         {
-            LevelManager.Instance.WaveStarted -= HandleWaveStarted;
-            LevelManager.Instance.WaveCompleted -= HandleWaveCompleted;
+            LevelManager.Instance.WaveStarted -= OnWaveStarted;
+            LevelManager.Instance.WaveCompleted -= OnWaveCompleted;
         }
 
-        if (waveToStart == null) return;
+        if (waveToStart == null)
+            return;
 
-        waveToStart.WaveElementStarted -= HandleWaveElementStarted;
-        waveToStart.WaveElementEnded -= HandleWaveElementEnded;
+        waveToStart.WaveElementStarted -= OnWaveElementStarted;
+        waveToStart.WaveElementEnded -= OnWaveElementEnded;
     }
 
     private void Update()
@@ -69,13 +91,61 @@ public class WaveGate : MonoBehaviour
         if (waveToStart != null)
             waveToStart.SetAdvanceAllowed(playerInArea);
 
-        if (!playerInArea) return;
+        if (!playerInArea)
+            return;
 
         if (!Input.GetKeyDown(interactKey) || waveToStart == null || LevelManager.Instance == null)
             return;
 
         if (LevelManager.Instance.CanStartWaveFromInteraction())
             LevelManager.Instance.TryStartWaveFromPlayerInteraction();
+    }
+
+    private void ResolveGateVisuals()
+    {
+        if (gateVisualsRoot == null)
+        {
+            Transform found = transform.Find("Gate");
+            if (found != null)
+                gateVisualsRoot = found;
+        }
+
+        if (gateVisualsRoot == null)
+            return;
+
+        if (primaryGate.planningVisual == null)
+            primaryGate.planningVisual = FindChildByName(gateVisualsRoot, "Gate");
+
+        if (primaryGate.reverseVisual == null)
+            primaryGate.reverseVisual = FindChildByName(gateVisualsRoot, "Gate Reverse");
+
+        if (secondaryGate.planningVisual == null)
+            secondaryGate.planningVisual = FindChildByName(gateVisualsRoot, "Gate second side");
+
+        if (secondaryGate.reverseVisual == null)
+            secondaryGate.reverseVisual = FindChildByName(gateVisualsRoot, "Gate second side reverse");
+
+        primaryGate.planningAnimator = GetAnimator(primaryGate.planningVisual);
+        primaryGate.reverseAnimator = GetAnimator(primaryGate.reverseVisual);
+        secondaryGate.planningAnimator = GetAnimator(secondaryGate.planningVisual);
+        secondaryGate.reverseAnimator = GetAnimator(secondaryGate.reverseVisual);
+    }
+
+    private static GateFrameAnimator GetAnimator(GameObject visual)
+    {
+        return visual != null ? visual.GetComponent<GateFrameAnimator>() : null;
+    }
+
+    private static GameObject FindChildByName(Transform root, string exactName)
+    {
+        for (int i = 0; i < root.childCount; i++)
+        {
+            Transform child = root.GetChild(i);
+            if (child != null && child.name == exactName)
+                return child.gameObject;
+        }
+
+        return null;
     }
 
     private void ResolveGateBoxCollider()
@@ -145,6 +215,79 @@ public class WaveGate : MonoBehaviour
         return false;
     }
 
+    private void SetPlanningVisible(bool planningVisible)
+    {
+        SetPairVisible(primaryGate, planningVisible);
+        SetPairVisible(secondaryGate, planningVisible);
+    }
+
+    private static void SetPairVisible(GateVisualPair pair, bool planningVisible)
+    {
+        if (pair.planningVisual != null)
+            pair.planningVisual.SetActive(planningVisible);
+
+        if (pair.reverseVisual != null)
+            pair.reverseVisual.SetActive(!planningVisible);
+    }
+
+    private void PlayOpenAnimations()
+    {
+        StopGateVisualRoutine();
+        SetPlanningVisible(true);
+        gateVisualRoutine = StartCoroutine(PlayBoth(
+            primaryGate.planningAnimator,
+            secondaryGate.planningAnimator));
+    }
+
+    private void PlayCloseAnimations()
+    {
+        StopGateVisualRoutine();
+        SetPlanningVisible(false);
+        gateVisualRoutine = StartCoroutine(PlayBoth(
+            primaryGate.reverseAnimator,
+            secondaryGate.reverseAnimator));
+    }
+
+    private void StopGateVisualRoutine()
+    {
+        if (gateVisualRoutine == null)
+            return;
+
+        StopCoroutine(gateVisualRoutine);
+        gateVisualRoutine = null;
+    }
+
+    private IEnumerator PlayBoth(GateFrameAnimator primary, GateFrameAnimator secondary)
+    {
+        int pending = 0;
+
+        if (RunIfActive(primary, ref pending))
+            StartCoroutine(WaitThenDone(primary.PlayOnce(), () => pending--));
+
+        if (RunIfActive(secondary, ref pending))
+            StartCoroutine(WaitThenDone(secondary.PlayOnce(), () => pending--));
+
+        while (pending > 0)
+            yield return null;
+
+        gateVisualRoutine = null;
+    }
+
+    private static bool RunIfActive(GateFrameAnimator gateAnimator, ref int pending)
+    {
+        if (gateAnimator == null || !gateAnimator.gameObject.activeInHierarchy)
+            return false;
+
+        pending++;
+        return true;
+    }
+
+    private static IEnumerator WaitThenDone(IEnumerator routine, System.Action onDone)
+    {
+        yield return routine;
+        onDone();
+    }
+
     private void ApplyClosedState()
     {
         if (blockingColliders != null)
@@ -173,22 +316,25 @@ public class WaveGate : MonoBehaviour
             gateBoxCollider.enabled = false;
     }
 
-    private void HandleWaveStarted()
+    private void OnWaveStarted()
     {
         ApplyClosedState();
+        SetPlanningVisible(false);
     }
 
-    private void HandleWaveElementStarted()
+    private void OnWaveElementStarted()
     {
         ApplyClosedState();
+        PlayCloseAnimations();
     }
 
-    private void HandleWaveElementEnded(bool waveFullyComplete)
+    private void OnWaveElementEnded(bool waveFullyComplete)
     {
         ApplyOpenState();
+        PlayOpenAnimations();
     }
 
-    private void HandleWaveCompleted()
+    private void OnWaveCompleted()
     {
         ApplyOpenState();
     }
