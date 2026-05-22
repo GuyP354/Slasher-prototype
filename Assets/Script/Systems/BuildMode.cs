@@ -5,7 +5,7 @@ using TMPro;
 public class BuildMode : MonoBehaviour
 {
     [Header("Preview position")]
-    [SerializeField] private float previewDistanceFromPlayer = 5f;
+    [SerializeField] private float previewDistanceFromPlayer = 4.25f;
 
     public const string RangerAreaTag = "RangerArea";
     public const string UnplaceableTag = "Unplaceable";
@@ -129,13 +129,13 @@ public class BuildMode : MonoBehaviour
             CyclePrefab(1);
 
         Transform anchor = PreviewAnchor;
-        if (Input.GetKeyDown(KeyCode.A))
+        if (Input.GetKey(KeyCode.A))
             previewDirection = -anchor.right;
-        else if (Input.GetKeyDown(KeyCode.D))
+        else if (Input.GetKey(KeyCode.D))
             previewDirection = anchor.right;
-        else if (Input.GetKeyDown(KeyCode.W))
+        else if (Input.GetKey(KeyCode.W))
             previewDirection = anchor.forward;
-        else if (Input.GetKeyDown(KeyCode.S))
+        else if (Input.GetKey(KeyCode.S))
             previewDirection = -anchor.forward;
 
         if (Input.GetKeyDown(KeyCode.Space))

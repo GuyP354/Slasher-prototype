@@ -53,12 +53,12 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 1
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 1
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.2676018, y: 0.86579335, z: 0.9711876}
-  m_Center: {x: -0.036189906, y: 0.39788625, z: 0.062094215}
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &9094864237966596065
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -117,7 +117,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RangerDefence
   enemyTag: Enemy
   attackRange: 25
-  attacksPerSecond: 0.4
+  attacksPerSecond: 1
   attackCooldownSeconds: 5
   damagePerHit: 5
   overlapLayers:
@@ -193,7 +193,7 @@ Animator:
   m_GameObject: {fileID: 2697319863502541222}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 4400059828483169998, guid: 0d20c2d8a2bfa7442bfcd9b96f1e840b, type: 3}
+  m_Controller: {fileID: 9100000, guid: 1562a480ab2a7d14dac4a993d6b99f41, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -223,9 +223,8 @@ MonoBehaviour:
   detectionRange: 25
   targetTags:
   - Enemy
-  - Strong Enemy
   detectionLayers:
     serializedVersion: 2
     m_Bits: 4294967295
   scanInterval: 0.15
-  usePlanarDistance: 1
+  usePlanarDistance: 0
