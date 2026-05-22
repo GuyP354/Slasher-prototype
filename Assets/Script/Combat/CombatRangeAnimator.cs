@@ -100,23 +100,17 @@ public class CombatRangeAnimator : MonoBehaviour
 
     {
 
-        Animator onSelf = GetComponent<Animator>();
-
-        if (onSelf == null)
-
-        {
-
-            animator = null;
+        if (animator != null)
 
             return;
 
-        }
 
 
+        animator = GetComponent<Animator>();
 
-        if (animator == null || animator.gameObject != gameObject)
+        if (animator == null)
 
-            animator = onSelf;
+            animator = GetComponentInChildren<Animator>(true);
 
     }
 
@@ -282,7 +276,7 @@ public class CombatRangeAnimator : MonoBehaviour
 
         {
 
-            Debug.LogWarning($"[{name}] CombatRangeAnimator needs an Animator on the same object.", this);
+            Debug.LogWarning($"[{name}] CombatRangeAnimator needs an Animator (assign the child visual or add one on this object).", this);
 
             return;
 

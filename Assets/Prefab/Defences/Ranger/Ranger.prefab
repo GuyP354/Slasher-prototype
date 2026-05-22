@@ -13,9 +13,7 @@ GameObject:
   - component: {fileID: 9094864237966596065}
   - component: {fileID: 6398004058733578796}
   - component: {fileID: 2723825157939092345}
-  - component: {fileID: 389803857410877229}
-  - component: {fileID: -8177205406581528387}
-  - component: {fileID: 2431870920070234799}
+  - component: {fileID: 5543243306500811550}
   m_Layer: 0
   m_Name: Ranger
   m_TagString: Obstacle
@@ -31,13 +29,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2697319863502541222}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.018324912, y: 0, z: 0, w: 0.9998321}
-  m_LocalPosition: {x: -13.59, y: 5, z: 21}
-  m_LocalScale: {x: 6.56, y: 8.631648, z: 6.56}
-  m_ConstrainProportionsScale: 1
-  m_Children: []
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -14.1, y: 5, z: 19.93}
+  m_LocalScale: {x: 2.9681, y: 3.905426, z: 2.9681}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1853554107724600153}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 2.1, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &6158299099685096931
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -117,21 +116,77 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RangerDefence
   enemyTag: Enemy
   attackRange: 25
-  attacksPerSecond: 1
+  attacksPerSecond: 0.4
   attackCooldownSeconds: 5
   damagePerHit: 5
   overlapLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  attackLoopDuration: 1
---- !u!212 &389803857410877229
+  attackLoopDuration: 2
+--- !u!114 &5543243306500811550
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2697319863502541222}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: baa6c2b727cf484498783df3b1b41720, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CombatRangeAnimator
+  animator: {fileID: 2333212407630599417}
+  engagedBoolParameter: HasTarget
+  driveMode: 1
+  detectionRange: 25
+  targetTags:
+  - Enemy
+  detectionLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  scanInterval: 0.15
+  usePlanarDistance: 0
+--- !u!1 &8135119100902533356
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1853554107724600153}
+  - component: {fileID: 1915816585670953636}
+  - component: {fileID: 2333212407630599417}
+  m_Layer: 0
+  m_Name: Animation Ranger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1853554107724600153
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8135119100902533356}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.051, y: -0.408, z: -0.329}
+  m_LocalScale: {x: 2.3785825, y: 1.9826413, z: 2.3785825}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2583739158598247682}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!212 &1915816585670953636
 SpriteRenderer:
   serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2697319863502541222}
+  m_GameObject: {fileID: 8135119100902533356}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -174,7 +229,7 @@ SpriteRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 5646729629236501848, guid: 0d20c2d8a2bfa7442bfcd9b96f1e840b, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.98171157, g: 0.9103774, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -183,14 +238,14 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!95 &-8177205406581528387
+--- !u!95 &2333212407630599417
 Animator:
   serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2697319863502541222}
+  m_GameObject: {fileID: 8135119100902533356}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
   m_Controller: {fileID: 9100000, guid: 1562a480ab2a7d14dac4a993d6b99f41, type: 2}
@@ -205,26 +260,3 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &2431870920070234799
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2697319863502541222}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: baa6c2b727cf484498783df3b1b41720, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CombatRangeAnimator
-  animator: {fileID: -8177205406581528387}
-  engagedBoolParameter: HasTarget
-  driveMode: 1
-  detectionRange: 25
-  targetTags:
-  - Enemy
-  detectionLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  scanInterval: 0.15
-  usePlanarDistance: 0
