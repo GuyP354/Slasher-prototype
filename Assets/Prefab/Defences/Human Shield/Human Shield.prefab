@@ -55,8 +55,8 @@ BoxCollider:
   m_ProvidesContacts: 1
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.0251966, y: 1, z: 0.06303566}
-  m_Center: {x: 0.33142912, y: 0, z: -0.017500004}
+  m_Size: {x: 0.9101912, y: 1, z: 0.017386088}
+  m_Center: {x: 0.38893119, y: 0, z: 0.0053247726}
 --- !u!114 &9094864237966596065
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -89,9 +89,9 @@ MonoBehaviour:
   enemyTag: Enemy
   attackRange: 0
   attacksPerSecond: 0
-  attackCooldownSeconds: 12
+  attackCooldownSeconds: 0
+  damageWindUpSeconds: 3
   damagePerHit: 0
-  attackLoopDuration: 1
   minSeparationFromOtherDefences: 356.4
 --- !u!54 &6398004058733578796
 Rigidbody:
@@ -131,6 +131,18 @@ PrefabInstance:
     - target: {fileID: -2253911629886400664, guid: 844f00236d89c3c44a090726d1c09850, type: 3}
       propertyPath: m_Name
       value: Human Shield
+      objectReference: {fileID: 0}
+    - target: {fileID: 3626916397498700004, guid: 844f00236d89c3c44a090726d1c09850, type: 3}
+      propertyPath: m_Color.b
+      value: 0.990566
+      objectReference: {fileID: 0}
+    - target: {fileID: 3626916397498700004, guid: 844f00236d89c3c44a090726d1c09850, type: 3}
+      propertyPath: m_Color.g
+      value: 0.92982376
+      objectReference: {fileID: 0}
+    - target: {fileID: 3626916397498700004, guid: 844f00236d89c3c44a090726d1c09850, type: 3}
+      propertyPath: m_Color.r
+      value: 0.9601949
       objectReference: {fileID: 0}
     - target: {fileID: 7878350319992209165, guid: 844f00236d89c3c44a090726d1c09850, type: 3}
       propertyPath: m_LocalScale.x

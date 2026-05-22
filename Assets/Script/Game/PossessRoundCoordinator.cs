@@ -18,12 +18,32 @@ public class PossessRoundCoordinator : MonoBehaviour
 
     private void Awake()
     {
-        if (possessSpawner == null)
+        Transform sceneMarker = FindScenePossessSpawner();
+        if (sceneMarker != null)
+            possessSpawner = sceneMarker;
+        else if (possessSpawner == null)
         {
             Transform found = transform.Find("PossessSpawner");
             if (found != null)
                 possessSpawner = found;
         }
+    }
+
+    /// <summary>Uses a scene-placed PossessSpawner (not parented under this LevelManager).</summary>
+    private Transform FindScenePossessSpawner()
+    {
+        Transform[] all = FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        for (int i = 0; i < all.Length; i++)
+        {
+            Transform t = all[i];
+            if (t == null || t.name != "PossessSpawner")
+                continue;
+            if (t.IsChildOf(transform))
+                continue;
+            return t;
+        }
+
+        return null;
     }
 
     private void OnEnable()
@@ -79,7 +99,9 @@ public class PossessRoundCoordinator : MonoBehaviour
         if (lazerBeamPrefab == null || possessSpawner == null)
             yield break;
 
-        GameObject go = Instantiate(lazerBeamPrefab, possessSpawner.position, possessSpawner.rotation);
+        GameObject go = Instantiate(lazerBeamPrefab, possessSpawner);
+        go.transform.localPosition = Vector3.zero;
+        go.transform.localRotation = Quaternion.identity;
         activeBeam = go.GetComponent<PossessLazerBeam>();
         if (activeBeam != null)
             activeBeam.Initialize(this, possessSpawner);

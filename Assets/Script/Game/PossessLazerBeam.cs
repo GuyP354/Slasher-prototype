@@ -29,24 +29,15 @@ public class PossessLazerBeam : MonoBehaviour
 
     private PossessRoundCoordinator coordinator;
     private Transform spawnerAnchor;
-    private Vector3 idleBasePosition;
-    private Quaternion idleBaseRotation;
     private Transform player;
     private bool held;
     private bool consumed;
-
-    private void Awake()
-    {
-        idleBasePosition = transform.position;
-        idleBaseRotation = transform.rotation;
-    }
 
     public void Initialize(PossessRoundCoordinator owner, Transform spawner)
     {
         coordinator = owner;
         spawnerAnchor = spawner;
-        idleBasePosition = transform.position;
-        idleBaseRotation = transform.rotation;
+        SnapToSpawnerIdlePose();
     }
 
     private void OnDestroy()
@@ -65,20 +56,13 @@ public class PossessLazerBeam : MonoBehaviour
 
         if (!held)
         {
-            if (spawnerAnchor != null)
-            {
-                idleBasePosition = spawnerAnchor.position;
-                idleBaseRotation = spawnerAnchor.rotation;
-            }
-
-            float bob = Mathf.Sin(Time.time * levitateSpeed) * levitateAmplitude;
-            transform.position = idleBasePosition + Vector3.up * bob;
-            transform.rotation = idleBaseRotation;
+            SnapToSpawnerIdlePose();
 
             if (player != null
                 && Input.GetKeyDown(interactKey)
                 && PlanarDistance(transform.position, player.position) <= pickupRadius)
             {
+                transform.SetParent(null);
                 held = true;
             }
         }
@@ -105,8 +89,9 @@ public class PossessLazerBeam : MonoBehaviour
             if (Input.GetKeyDown(interactKey))
             {
                 held = false;
-                idleBasePosition = transform.position;
-                idleBaseRotation = transform.rotation;
+                if (spawnerAnchor != null)
+                    transform.SetParent(spawnerAnchor);
+                SnapToSpawnerIdlePose();
                 return;
             }
 
@@ -211,6 +196,19 @@ public class PossessLazerBeam : MonoBehaviour
         }
 
         return best;
+    }
+
+    private void SnapToSpawnerIdlePose()
+    {
+        if (spawnerAnchor == null)
+            return;
+
+        if (transform.parent != spawnerAnchor)
+            transform.SetParent(spawnerAnchor);
+
+        float bob = Mathf.Sin(Time.time * levitateSpeed) * levitateAmplitude;
+        transform.localPosition = Vector3.up * bob;
+        transform.localRotation = Quaternion.identity;
     }
 
     private void CachePlayer()

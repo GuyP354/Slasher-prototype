@@ -118,11 +118,11 @@ MonoBehaviour:
   attackRange: 25
   attacksPerSecond: 1
   attackCooldownSeconds: 5
+  damageWindUpSeconds: 3
   damagePerHit: 5
   overlapLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  attackLoopDuration: 1
 --- !u!114 &2431870920070234799
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -169,6 +169,18 @@ PrefabInstance:
     - target: {fileID: 3626916397498700004, guid: 0d20c2d8a2bfa7442bfcd9b96f1e840b, type: 3}
       propertyPath: m_FlipY
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3626916397498700004, guid: 0d20c2d8a2bfa7442bfcd9b96f1e840b, type: 3}
+      propertyPath: m_Color.b
+      value: 0.990566
+      objectReference: {fileID: 0}
+    - target: {fileID: 3626916397498700004, guid: 0d20c2d8a2bfa7442bfcd9b96f1e840b, type: 3}
+      propertyPath: m_Color.g
+      value: 0.9672036
+      objectReference: {fileID: 0}
+    - target: {fileID: 3626916397498700004, guid: 0d20c2d8a2bfa7442bfcd9b96f1e840b, type: 3}
+      propertyPath: m_Color.r
+      value: 0.9799973
       objectReference: {fileID: 0}
     - target: {fileID: 7878350319992209165, guid: 0d20c2d8a2bfa7442bfcd9b96f1e840b, type: 3}
       propertyPath: m_LocalScale.x

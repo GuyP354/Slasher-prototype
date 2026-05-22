@@ -92,7 +92,7 @@ MonoBehaviour:
   attacksPerSecond: 1
   attackCooldownSeconds: 12
   damagePerHit: 10
-  attackLoopDuration: 1
+  attackLoopDuration: 10
   minSeparationFromOtherDefences: 356.4
 --- !u!54 &6398004058733578796
 Rigidbody:

@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Ranger defence: acquires one Enemy-tagged target in range, attacks it until it dies, then picks a new target.
+/// Ranger defence: acquires one Enemy-tagged target in range, wind-up, damage, then cooldown before the next hit.
 /// </summary>
 public class RangerDefence : MonoBehaviour
 {
@@ -10,18 +10,17 @@ public class RangerDefence : MonoBehaviour
 
     [Header("Combat")]
     [SerializeField] private float attackRange = 8f;
-    [SerializeField] private float attacksPerSecond = 1f; // fallback if cooldown is 0
+    [SerializeField] private float attacksPerSecond = 1f;
+    [Tooltip("Seconds after each hit before another wind-up can begin. Used when greater than 0.")]
     [SerializeField] private float attackCooldownSeconds = 9f;
+    [Tooltip("Seconds after an enemy is in range before the first hit and between cooldown and the next hit.")]
+    [SerializeField] private float damageWindUpSeconds = 3f;
     [SerializeField] private int damagePerHit = 10;
     [SerializeField] private LayerMask overlapLayers = ~0;
 
-    [Header("Animation")]
-    [Tooltip("How long the looping attack animation plays before returning to standstill for the damage cooldown.")]
-    [SerializeField] private float attackLoopDuration = 1f;
-
     private Transform currentTarget;
-    private float nextAttackTime;
-    private float attackVisualEndTime;
+    private float nextDamageAllowedTime;
+    private float pendingDamageTime;
     private CombatRangeAnimator combatAnimator;
 
     private void Awake()
@@ -38,23 +37,28 @@ public class RangerDefence : MonoBehaviour
         }
 
         bool targetInRange = currentTarget != null && IsTargetInAttackRange(currentTarget);
-        UpdateCombatAnimation(targetInRange);
 
         if (!targetInRange)
+        {
+            pendingDamageTime = 0f;
+            UpdateCombatAnimation(false);
             return;
+        }
 
-        if (Time.time < attackVisualEndTime)
-            return;
+        if (Time.time >= nextDamageAllowedTime)
+        {
+            if (pendingDamageTime <= 0f)
+                pendingDamageTime = Time.time + Mathf.Max(0f, damageWindUpSeconds);
 
-        if (Time.time < nextAttackTime)
-            return;
+            if (Time.time >= pendingDamageTime)
+            {
+                pendingDamageTime = 0f;
+                nextDamageAllowedTime = Time.time + GetCooldownDuration();
+                DealDamageToCurrentTarget();
+            }
+        }
 
-        float fallbackInterval = attacksPerSecond > 0f ? 1f / attacksPerSecond : 0f;
-        float cooldown = attackCooldownSeconds > 0f ? attackCooldownSeconds : fallbackInterval;
-        attackVisualEndTime = Time.time + Mathf.Max(0.05f, attackLoopDuration);
-        nextAttackTime = Time.time + cooldown;
-        SetAttackAnimation(true);
-        DealDamageToCurrentTarget();
+        UpdateCombatAnimation(true);
     }
 
     private void UpdateCombatAnimation(bool targetInRange)
@@ -65,19 +69,17 @@ public class RangerDefence : MonoBehaviour
             return;
         }
 
-        if (Time.time < attackVisualEndTime)
-        {
-            SetAttackAnimation(true);
-            return;
-        }
+        bool windingUp = pendingDamageTime > Time.time;
+        SetAttackAnimation(windingUp);
+    }
 
-        if (Time.time < nextAttackTime)
-        {
-            SetAttackAnimation(false);
-            return;
-        }
-
-        SetAttackAnimation(false);
+    private float GetCooldownDuration()
+    {
+        if (attackCooldownSeconds > 0f)
+            return attackCooldownSeconds;
+        if (attacksPerSecond > 0f)
+            return 1f / attacksPerSecond;
+        return 0f;
     }
 
     private void SetAttackAnimation(bool showAttackLoop)
@@ -90,6 +92,8 @@ public class RangerDefence : MonoBehaviour
     {
         Collider best = FindClosestEnemyColliderInRange();
         currentTarget = best != null ? best.transform : null;
+        if (currentTarget != null)
+            pendingDamageTime = 0f;
     }
 
     private Collider FindClosestEnemyColliderInRange()

@@ -8,18 +8,17 @@ public class ObstacleDefense : MonoBehaviour
     [Header("Attack settings")]
     [SerializeField] private float attackRange = 2.0f;
     [SerializeField] private float attacksPerSecond = 1.0f;
+    [Tooltip("Seconds after each hit before another wind-up can begin. Used when greater than 0.")]
     [SerializeField] private float attackCooldownSeconds = 12f;
+    [Tooltip("Seconds after an enemy is in range before the first hit and between cooldown and the next hit.")]
+    [SerializeField] private float damageWindUpSeconds = 3f;
     [SerializeField] private int damagePerHit = 10;
-
-    [Header("Animation")]
-    [Tooltip("How long the looping attack animation plays before returning to standstill for the damage cooldown.")]
-    [SerializeField] private float attackLoopDuration = 1f;
 
     [Header("Placement (Tower preview)")]
     [SerializeField] private float minSeparationFromOtherDefences = 20f;
 
-    private float nextAttackTime;
-    private float attackVisualEndTime;
+    private float nextDamageAllowedTime;
+    private float pendingDamageTime;
     private CombatRangeAnimator combatAnimator;
 
     public float MinSeparationFromOtherDefences => minSeparationFromOtherDefences;
@@ -31,28 +30,30 @@ public class ObstacleDefense : MonoBehaviour
 
     private void Update()
     {
-        bool targetInRange = FindEnemyInRange() != null;
-        UpdateCombatAnimation(targetInRange);
+        Collider target = FindEnemyInRange();
+        bool targetInRange = target != null;
 
         if (!targetInRange)
+        {
+            pendingDamageTime = 0f;
+            UpdateCombatAnimation(false);
             return;
+        }
 
-        if (Time.time < attackVisualEndTime)
-            return;
+        if (Time.time >= nextDamageAllowedTime)
+        {
+            if (pendingDamageTime <= 0f)
+                pendingDamageTime = Time.time + Mathf.Max(0f, damageWindUpSeconds);
 
-        if (Time.time < nextAttackTime)
-            return;
+            if (Time.time >= pendingDamageTime)
+            {
+                pendingDamageTime = 0f;
+                nextDamageAllowedTime = Time.time + GetCooldownDuration();
+                DealDamage(target);
+            }
+        }
 
-        Collider target = FindEnemyInRange();
-        if (target == null)
-            return;
-
-        float fallbackInterval = attacksPerSecond > 0f ? 1f / attacksPerSecond : 0f;
-        float cooldown = attackCooldownSeconds > 0f ? attackCooldownSeconds : fallbackInterval;
-        attackVisualEndTime = Time.time + Mathf.Max(0.05f, attackLoopDuration);
-        nextAttackTime = Time.time + cooldown;
-        SetAttackAnimation(true);
-        DealDamage(target);
+        UpdateCombatAnimation(true);
     }
 
     private void UpdateCombatAnimation(bool targetInRange)
@@ -63,19 +64,17 @@ public class ObstacleDefense : MonoBehaviour
             return;
         }
 
-        if (Time.time < attackVisualEndTime)
-        {
-            SetAttackAnimation(true);
-            return;
-        }
+        bool windingUp = pendingDamageTime > Time.time;
+        SetAttackAnimation(windingUp);
+    }
 
-        if (Time.time < nextAttackTime)
-        {
-            SetAttackAnimation(false);
-            return;
-        }
-
-        SetAttackAnimation(false);
+    private float GetCooldownDuration()
+    {
+        if (attackCooldownSeconds > 0f)
+            return attackCooldownSeconds;
+        if (attacksPerSecond > 0f)
+            return 1f / attacksPerSecond;
+        return 0f;
     }
 
     private void SetAttackAnimation(bool showAttackLoop)
