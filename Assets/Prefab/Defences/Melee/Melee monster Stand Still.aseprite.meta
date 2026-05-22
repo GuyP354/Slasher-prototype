@@ -129,7 +129,7 @@ ScriptedImporter:
   animatedSpriteImportData:
   - name: Frame_0
     originalName: 
-    pivot: {x: 0.4, y: -0.52}
+    pivot: {x: 0.5, y: 0}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -150,7 +150,7 @@ ScriptedImporter:
     uvTransform: {x: 33, y: 4}
   - name: Frame_1
     originalName: 
-    pivot: {x: 0.42857143, y: -0.5416667}
+    pivot: {x: 0.52380955, y: 0}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -171,7 +171,7 @@ ScriptedImporter:
     uvTransform: {x: 4, y: 4}
   - name: Frame_2
     originalName: 
-    pivot: {x: 0.3809524, y: -0.5416667}
+    pivot: {x: 0.47619048, y: 0}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -192,7 +192,7 @@ ScriptedImporter:
     uvTransform: {x: 4, y: 36}
   - name: Frame_3
     originalName: 
-    pivot: {x: 0.3809524, y: -0.5416667}
+    pivot: {x: 0.47619048, y: 0}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -213,7 +213,7 @@ ScriptedImporter:
     uvTransform: {x: 4, y: 68}
   - name: Frame_4
     originalName: 
-    pivot: {x: 0.3809524, y: -0.5416667}
+    pivot: {x: 0.47619048, y: 0}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -251,8 +251,8 @@ ScriptedImporter:
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
-        x: 24
-        y: 13
+        x: 1
+        y: 0
         width: 20
         height: 25
       spriteId: 6ef627718eebd574a9d49649a2620148
@@ -260,8 +260,8 @@ ScriptedImporter:
       frameIndex: 1
       additiveSortOrder: 0
       cellRect:
-        x: 23
-        y: 13
+        x: 0
+        y: 0
         width: 21
         height: 24
       spriteId: cf7f443349321ae449171eb95058051a
@@ -269,8 +269,8 @@ ScriptedImporter:
       frameIndex: 2
       additiveSortOrder: 0
       cellRect:
-        x: 24
-        y: 13
+        x: 1
+        y: 0
         width: 21
         height: 24
       spriteId: f4a28e3d5239f2245af8c2c532120ca7
@@ -278,8 +278,8 @@ ScriptedImporter:
       frameIndex: 3
       additiveSortOrder: 0
       cellRect:
-        x: 24
-        y: 13
+        x: 1
+        y: 0
         width: 21
         height: 24
       spriteId: 6d286fe7ca9bc294fa22cf10bb4458cb
@@ -287,8 +287,8 @@ ScriptedImporter:
       frameIndex: 4
       additiveSortOrder: 0
       cellRect:
-        x: 24
-        y: 13
+        x: 1
+        y: 0
         width: 21
         height: 24
       spriteId: b28b815a8a1f43448bc036b39fca01e3
@@ -301,5 +301,5 @@ ScriptedImporter:
   generatePhysicsShape: 0
   secondarySpriteTextures: []
   spritePackingTag: 
-  canvasSize: {x: 64, y: 64}
+  canvasSize: {x: 22, y: 25}
   previousTextureSize: {x: 64, y: 128}
