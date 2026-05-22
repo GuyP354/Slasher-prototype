@@ -129,7 +129,7 @@ ScriptedImporter:
   animatedSpriteImportData:
   - name: Death animations
     originalName: 
-    pivot: {x: 0.4528302, y: -0.39130434}
+    pivot: {x: 0.5326087, y: 0}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -137,8 +137,8 @@ ScriptedImporter:
       serializedVersion: 2
       x: 4
       y: 4
-      width: 53
-      height: 46
+      width: 46
+      height: 44
     spriteID: ec7f1668a023b23499507ff26ef79a32
     spriteBone: []
     spriteOutline: []
@@ -148,6 +148,27 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 4, y: 4}
+  - name: Frame_1
+    originalName: 
+    pivot: {x: 0.51, y: 0}
+    alignment: 9
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 4
+      y: 56
+      width: 50
+      height: 30
+    spriteID: 1611d6c73e099634195fde303174a1b5
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 4, y: 56}
   spriteSheetImportData: []
   tileSetImportData: []
   asepriteLayers:
@@ -163,15 +184,24 @@ ScriptedImporter:
     layerType: 0
     blendMode: 0
     cells:
-    - name: Death animations
+    - name: Frame_0
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
-        x: 24
-        y: 18
-        width: 53
-        height: 46
+        x: 2
+        y: 0
+        width: 46
+        height: 44
       spriteId: ec7f1668a023b23499507ff26ef79a32
+    - name: Frame_1
+      frameIndex: 1
+      additiveSortOrder: 0
+      cellRect:
+        x: 1
+        y: 0
+        width: 50
+        height: 30
+      spriteId: 1611d6c73e099634195fde303174a1b5
     linkedCells: []
     tileCells: []
     tileSetIndex: 0
@@ -181,5 +211,5 @@ ScriptedImporter:
   generatePhysicsShape: 0
   secondarySpriteTextures: []
   spritePackingTag: 
-  canvasSize: {x: 96, y: 96}
-  previousTextureSize: {x: 64, y: 64}
+  canvasSize: {x: 53, y: 46}
+  previousTextureSize: {x: 64, y: 128}

@@ -13,8 +13,10 @@ public class PossessLazerBeam : MonoBehaviour
     [SerializeField] private float pickupRadius = 2.5f;
 
     [Header("Carry")]
-    [Tooltip("Offset while held: X/Z relative to facing, Y is vertical (above character pivot).")]
-    [SerializeField] private Vector3 holdLocalOffset = new Vector3(-1.2f, 4.25f, 0f);
+    [Tooltip("Side offset while held (X = left/right, Z = forward/back) relative to player facing. Height stays at pickup/spawn level.")]
+    [SerializeField] private Vector3 holdLocalOffset = new Vector3(-1.2f, 0f, 0f);
+    [Tooltip("Small lift applied while carried (on top of spawn/pickup height).")]
+    [SerializeField] private float holdExtraHeight = 0.25f;
 
     [Header("Idle float")]
     [SerializeField] private float levitateAmplitude = 0.25f;
@@ -32,12 +34,21 @@ public class PossessLazerBeam : MonoBehaviour
     private Transform player;
     private bool held;
     private bool consumed;
+    private float holdHeightAbovePlayer;
+    private Quaternion heldWorldRotation;
+    private PossessWorldPropVisual worldPropVisual;
 
     public void Initialize(PossessRoundCoordinator owner, Transform spawner)
     {
         coordinator = owner;
         spawnerAnchor = spawner;
+        ResolveWorldPropVisual();
         SnapToSpawnerIdlePose();
+    }
+
+    private void Awake()
+    {
+        ResolveWorldPropVisual();
     }
 
     private void OnDestroy()
@@ -63,6 +74,8 @@ public class PossessLazerBeam : MonoBehaviour
                 && PlanarDistance(transform.position, player.position) <= pickupRadius)
             {
                 transform.SetParent(null);
+                heldWorldRotation = transform.rotation;
+                holdHeightAbovePlayer = transform.position.y - player.position.y;
                 held = true;
             }
         }
@@ -80,11 +93,13 @@ public class PossessLazerBeam : MonoBehaviour
                 flatForward = Vector3.forward;
             flatForward.Normalize();
 
-            Quaternion face = Quaternion.LookRotation(flatForward, Vector3.up);
-            Vector3 worldOffset = face * holdLocalOffset;
+            Vector3 planarOffset = new Vector3(holdLocalOffset.x, 0f, holdLocalOffset.z);
+            Vector3 worldOffset = Quaternion.LookRotation(flatForward, Vector3.up) * planarOffset;
             float bob = Mathf.Sin(Time.time * levitateSpeed) * (levitateAmplitude * 0.5f);
-            transform.position = player.position + worldOffset + Vector3.up * bob;
-            transform.rotation = face;
+            Vector3 holdPosition = player.position + worldOffset;
+            holdPosition.y = player.position.y + holdHeightAbovePlayer + holdExtraHeight + bob;
+            transform.position = holdPosition;
+            transform.rotation = heldWorldRotation;
 
             if (Input.GetKeyDown(interactKey))
             {
@@ -104,6 +119,8 @@ public class PossessLazerBeam : MonoBehaviour
     {
         if (player == null)
             return;
+
+        consumed = true;
 
         Vector3 origin = player.position + Vector3.up * 1.2f;
         Quaternion orient = Quaternion.LookRotation(flatForward, Vector3.up);
@@ -137,8 +154,76 @@ public class PossessLazerBeam : MonoBehaviour
         if (BloodInventory.Instance != null)
             BloodInventory.Instance.AbsorbAllBloodPickupsInScene();
 
-        consumed = true;
+        PlayDetachedWorldPropAnimation();
         Destroy(gameObject);
+    }
+
+    private void PlayDetachedWorldPropAnimation()
+    {
+        if (worldPropVisual == null)
+            return;
+
+        PossessWorldPropVisual runner = ResolveAnimationRunner();
+        if (runner == null)
+            return;
+
+        runner.GetVisualTransform().SetParent(null);
+        runner.PlayAbilityPresentationAndDestroy();
+    }
+
+    /// <summary>Animator lives on World props; runner must be on that object so it survives pickup destroy.</summary>
+    private PossessWorldPropVisual ResolveAnimationRunner()
+    {
+        Transform visual = worldPropVisual.GetVisualTransform();
+        PossessWorldPropVisual onVisual = visual.GetComponent<PossessWorldPropVisual>();
+        if (onVisual != null)
+            return onVisual;
+
+        onVisual = visual.gameObject.AddComponent<PossessWorldPropVisual>();
+        return onVisual;
+    }
+
+    private void ResolveWorldPropVisual()
+    {
+        if (worldPropVisual != null)
+            return;
+
+        Animator anim = GetComponentInChildren<Animator>(true);
+        if (anim != null)
+        {
+            worldPropVisual = anim.GetComponent<PossessWorldPropVisual>();
+            if (worldPropVisual == null)
+                worldPropVisual = anim.gameObject.AddComponent<PossessWorldPropVisual>();
+            worldPropVisual.ShowFrameZero();
+            return;
+        }
+
+        worldPropVisual = GetComponentInChildren<PossessWorldPropVisual>(true);
+        if (worldPropVisual != null)
+            return;
+
+        Transform worldProp = transform.Find("World props");
+        if (worldProp == null)
+        {
+            Transform[] children = GetComponentsInChildren<Transform>(true);
+            for (int i = 0; i < children.Length; i++)
+            {
+                if (children[i] != null && children[i].name == "World props")
+                {
+                    worldProp = children[i];
+                    break;
+                }
+            }
+        }
+
+        if (worldProp == null)
+            return;
+
+        worldPropVisual = worldProp.GetComponent<PossessWorldPropVisual>();
+        if (worldPropVisual == null && worldProp.GetComponent<Animator>() != null)
+            worldPropVisual = worldProp.gameObject.AddComponent<PossessWorldPropVisual>();
+
+        worldPropVisual.ShowFrameZero();
     }
 
     private static GameObject FindFirstEnemyRootAlongHits(RaycastHit[] hits)

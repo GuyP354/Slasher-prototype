@@ -38,6 +38,12 @@ public partial class EnemyCombat : MonoBehaviour
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
+        if (agent != null)
+        {
+            agent.updateRotation = false;
+            agent.updateUpAxis = false;
+        }
+
         health = GetComponent<Health>();
         possessedCached = GetComponent<PossessedEnemy>();
     }
