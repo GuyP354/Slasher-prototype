@@ -129,7 +129,7 @@ ScriptedImporter:
   animatedSpriteImportData:
   - name: Frame_0
     originalName: 
-    pivot: {x: 0.6315789, y: -0.5151515}
+    pivot: {x: 0.5, y: 0}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -150,7 +150,7 @@ ScriptedImporter:
     uvTransform: {x: 4, y: 4}
   - name: Frame_1
     originalName: 
-    pivot: {x: 0.6315789, y: -0.5151515}
+    pivot: {x: 0.5, y: 0}
     alignment: 9
     border: {x: 0, y: 0, z: 0, w: 0}
     customData: 
@@ -188,8 +188,8 @@ ScriptedImporter:
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
-        x: 20
-        y: 17
+        x: 0
+        y: 0
         width: 19
         height: 33
       spriteId: a238f226243005047b8d823853e5781c
@@ -197,8 +197,8 @@ ScriptedImporter:
       frameIndex: 1
       additiveSortOrder: 0
       cellRect:
-        x: 20
-        y: 17
+        x: 0
+        y: 0
         width: 19
         height: 33
       spriteId: 87ae8fc0b0db5ad4ca90bc2df6974ba3
@@ -211,5 +211,5 @@ ScriptedImporter:
   generatePhysicsShape: 0
   secondarySpriteTextures: []
   spritePackingTag: 
-  canvasSize: {x: 64, y: 64}
+  canvasSize: {x: 19, y: 33}
   previousTextureSize: {x: 64, y: 64}

@@ -31,7 +31,7 @@ Transform:
   m_GameObject: {fileID: 1246018118470128864}
   serializedVersion: 2
   m_LocalRotation: {x: -0.0000002975376, y: 0.14443049, z: -0.000000070800354, w: 0.989515}
-  m_LocalPosition: {x: -1.18, y: -0.46, z: 4.73}
+  m_LocalPosition: {x: 1, y: 1, z: 1}
   m_LocalScale: {x: 10.960776, y: 11.3997, z: 10.214612}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -171,7 +171,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   speed: 3
+  forwardBackwardSpeedMultiplier: 1.2
   groundDist: 0
+  characterAnimator: {fileID: 0}
+  idleStateName: Idle
+  moveUpStateName: MoveUp
+  moveDownStateName: MoveDown
+  moveLeftStateName: MoveLeft
+  moveRightStateName: MoveRight
+  idleReturnDelaySeconds: 3
   terrainLayer:
     serializedVersion: 2
     m_Bits: 64
@@ -196,8 +204,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.20102635, y: 0.34440205, z: 0.06107058}
-  m_Center: {x: -0.035516165, y: 0.35083786, z: 0.00035910495}
+  m_Size: {x: 0.19676614, y: 0.34067753, z: 0.045500267}
+  m_Center: {x: -0.033386003, y: 0.17703554, z: -0.001953921}
 --- !u!1 &7380804928031207441
 GameObject:
   m_ObjectHideFlags: 0
