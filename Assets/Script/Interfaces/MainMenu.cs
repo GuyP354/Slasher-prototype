@@ -23,9 +23,13 @@ public class MainMenu : MonoBehaviour
     [Tooltip("If enabled, Space triggers Submit on the selected UI control.")]
     [SerializeField] private bool activateSubmitWithSpace = true;
 
+    [Header("Audio")]
+    [SerializeField] private Slider volumeSlider;
+
     private void Awake()
     {
         AutoAssignReferences();
+        InitMasterVolume();
         EnsureGlobalSpaceSubmit();
 
         SetMainMenuVisible(true);
@@ -41,6 +45,9 @@ public class MainMenu : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (volumeSlider != null)
+            volumeSlider.onValueChanged.RemoveListener(OnVolumeChanged);
+
         UnregisterButton(playButton, PlayGame);
         UnregisterButton(optionsButton, OpenOptionsMenu);
         UnregisterButton(quitButton, QuitGame);
@@ -115,6 +122,28 @@ public class MainMenu : MonoBehaviour
         if (optionsButton == null) optionsButton = FindButtonByName("Options Button");
         if (quitButton == null) quitButton = FindButtonByName("Quit Button");
         if (mainMenuButton == null) mainMenuButton = FindButtonByName("Main Menu Button");
+
+        if (volumeSlider == null && optionsMenuRoot != null)
+            volumeSlider = optionsMenuRoot.transform.Find("Slider")?.GetComponent<Slider>();
+    }
+
+    private void InitMasterVolume()
+    {
+        float saved = Mathf.Clamp01(PlayerPrefs.GetFloat("MasterVolume", 1f));
+        if (volumeSlider != null)
+        {
+            volumeSlider.SetValueWithoutNotify(saved);
+            volumeSlider.onValueChanged.AddListener(OnVolumeChanged);
+        }
+
+        OnVolumeChanged(saved);
+    }
+
+    private static void OnVolumeChanged(float value)
+    {
+        float v = Mathf.Clamp01(value);
+        AudioListener.volume = v;
+        PlayerPrefs.SetFloat("MasterVolume", v);
     }
 
     private void SetMainMenuVisible(bool visible)
