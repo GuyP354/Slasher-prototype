@@ -22,10 +22,19 @@ public partial class EnemyCombat : MonoBehaviour
     [Header("Loot")]
     [SerializeField] private GameObject bloodResourcePrefab;
     [SerializeField] private Vector3 bloodDropOffset;
+    [Tooltip("Optional. Uses this sprite/child for drop position; otherwise the first living sprite child.")]
+    [SerializeField] private Transform bloodDropAnchor;
+    [Tooltip("Raycast straight down from the sprite to find floor height.")]
+    [SerializeField] private bool snapBloodToGround = true;
+    [SerializeField] private float bloodDropHeightAboveGround = 0.14f;
+    [SerializeField] private float bloodDropRayStartHeight = 2f;
+    [SerializeField] private float bloodDropRayDistance = 6f;
+    [SerializeField] private LayerMask bloodDropGroundMask = ~0;
 
     private NavMeshAgent agent;
     private Transform objective;
     private Transform currentObstacle;
+    private SpriteRenderer livingSprite;
 
     private float nextScanTime;
     private float nextAttackTime;
@@ -46,6 +55,7 @@ public partial class EnemyCombat : MonoBehaviour
 
         health = GetComponent<Health>();
         possessedCached = GetComponent<PossessedEnemy>();
+        CacheLivingSprite();
     }
 
     /// <summary>Call after <see cref="PossessedEnemy"/> is added at runtime so possession AI applies immediately.</summary>
@@ -69,8 +79,101 @@ public partial class EnemyCombat : MonoBehaviour
     private void DropBloodOnDeath()
     {
         if (bloodResourcePrefab == null) return;
-        Vector3 pos = transform.position + bloodDropOffset;
-        Instantiate(bloodResourcePrefab, pos, Quaternion.identity);
+        Instantiate(bloodResourcePrefab, GetBloodSpawnPosition(), Quaternion.identity);
+    }
+
+    private void CacheLivingSprite()
+    {
+        livingSprite = null;
+
+        if (bloodDropAnchor != null)
+        {
+            livingSprite = bloodDropAnchor.GetComponent<SpriteRenderer>();
+            if (livingSprite == null)
+                livingSprite = bloodDropAnchor.GetComponentInChildren<SpriteRenderer>(true);
+            return;
+        }
+
+        SpriteRenderer[] sprites = GetComponentsInChildren<SpriteRenderer>(true);
+        for (int i = 0; i < sprites.Length; i++)
+        {
+            SpriteRenderer sr = sprites[i];
+            if (sr == null || IsDeathVisualTransform(sr.transform))
+                continue;
+
+            livingSprite = sr;
+            return;
+        }
+    }
+
+    private bool IsDeathVisualTransform(Transform t)
+    {
+        while (t != null)
+        {
+            if (t.name.IndexOf("Death", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+            t = t.parent;
+        }
+
+        return false;
+    }
+
+    private Vector3 GetBloodSpawnPosition()
+    {
+        Vector3 anchor = GetBloodAnchorPoint();
+        anchor += bloodDropOffset;
+
+        if (snapBloodToGround && TryGetGroundY(anchor.x, anchor.z, anchor.y, out float groundY))
+            return new Vector3(anchor.x, groundY, anchor.z);
+
+        return new Vector3(anchor.x, anchor.y + bloodDropHeightAboveGround, anchor.z);
+    }
+
+    private Vector3 GetBloodAnchorPoint()
+    {
+        if (livingSprite != null)
+        {
+            Bounds bounds = livingSprite.bounds;
+            return new Vector3(bounds.center.x, bounds.min.y, bounds.center.z);
+        }
+
+        if (bloodDropAnchor != null)
+            return bloodDropAnchor.position;
+
+        return transform.position;
+    }
+
+    private bool TryGetGroundY(float x, float z, float referenceY, out float groundY)
+    {
+        Vector3 origin = new Vector3(x, referenceY + bloodDropRayStartHeight, z);
+        float maxDistance = bloodDropRayStartHeight + bloodDropRayDistance;
+        RaycastHit[] hits = Physics.RaycastAll(origin, Vector3.down, maxDistance, bloodDropGroundMask, QueryTriggerInteraction.Ignore);
+
+        float bestDistance = float.MaxValue;
+        bool found = false;
+        groundY = referenceY + bloodDropHeightAboveGround;
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider col = hits[i].collider;
+            if (col == null || IsSelfCollider(col))
+                continue;
+
+            if (hits[i].distance >= bestDistance)
+                continue;
+
+            bestDistance = hits[i].distance;
+            groundY = hits[i].point.y + bloodDropHeightAboveGround;
+            found = true;
+        }
+
+        return found;
+    }
+
+    private bool IsSelfCollider(Collider col)
+    {
+        Transform hitTransform = col.transform;
+        return hitTransform == transform || hitTransform.IsChildOf(transform);
     }
 
     private void Start()
