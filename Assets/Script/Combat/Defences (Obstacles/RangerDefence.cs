@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Ranger defence: acquires one Enemy-tagged target in range, wind-up, damage, then cooldown before the next hit.
+/// Ranger defence: acquires one Enemy-tagged target in range, wind-up, fires a visible projectile, then cooldown.
 /// </summary>
 public class RangerDefence : MonoBehaviour
 {
@@ -13,19 +13,32 @@ public class RangerDefence : MonoBehaviour
     [SerializeField] private float attacksPerSecond = 1f;
     [Tooltip("Seconds after each hit before another wind-up can begin. Used when greater than 0.")]
     [SerializeField] private float attackCooldownSeconds = 9f;
-    [Tooltip("Seconds after an enemy is in range before the first hit and between cooldown and the next hit.")]
+    [Tooltip("Seconds after an enemy is in range before the first shot and between cooldown and the next shot.")]
     [SerializeField] private float damageWindUpSeconds = 3f;
     [SerializeField] private int damagePerHit = 10;
     [SerializeField] private LayerMask overlapLayers = ~0;
 
+    [Header("Projectile")]
+    [Tooltip("Child used as the flying bolt visual (e.g. Ranger Projectile). Stays hidden on the tower; copies fly to targets.")]
+    [SerializeField] private Transform projectileSpawn;
+    [SerializeField] private float projectileSpeed = 35f;
+    [SerializeField] private float projectileHitRadius = 0.35f;
+    [SerializeField] private Vector3 projectileAimOffset = new Vector3(0f, 0.5f, 0f);
+    [Tooltip("Fires the bolt this many seconds before wind-up ends (attack anim keeps playing).")]
+    [SerializeField] private float projectileFireLeadSeconds = 0.25f;
+
+    private GameObject projectileTemplate;
     private Transform currentTarget;
     private float nextDamageAllowedTime;
     private float pendingDamageTime;
+    private float projectileFireTime;
+    private bool firedProjectileThisWindUp;
     private CombatRangeAnimator combatAnimator;
 
     private void Awake()
     {
         combatAnimator = GetComponent<CombatRangeAnimator>();
+        ResolveProjectileSpawn();
     }
 
     private void Update()
@@ -41,6 +54,7 @@ public class RangerDefence : MonoBehaviour
         if (!targetInRange)
         {
             pendingDamageTime = 0f;
+            firedProjectileThisWindUp = false;
             UpdateCombatAnimation(false);
             return;
         }
@@ -48,17 +62,74 @@ public class RangerDefence : MonoBehaviour
         if (Time.time >= nextDamageAllowedTime)
         {
             if (pendingDamageTime <= 0f)
-                pendingDamageTime = Time.time + Mathf.Max(0f, damageWindUpSeconds);
+            {
+                float windUp = Mathf.Max(0f, damageWindUpSeconds);
+                pendingDamageTime = Time.time + windUp;
+                float lead = Mathf.Clamp(projectileFireLeadSeconds, 0f, Mathf.Max(0f, windUp - 0.05f));
+                projectileFireTime = pendingDamageTime - lead;
+                firedProjectileThisWindUp = false;
+            }
+
+            if (!firedProjectileThisWindUp && Time.time >= projectileFireTime)
+            {
+                firedProjectileThisWindUp = true;
+                nextDamageAllowedTime = Time.time + GetCooldownDuration();
+                FireProjectileAtCurrentTarget();
+            }
 
             if (Time.time >= pendingDamageTime)
-            {
                 pendingDamageTime = 0f;
-                nextDamageAllowedTime = Time.time + GetCooldownDuration();
-                DealDamageToCurrentTarget();
-            }
         }
 
         UpdateCombatAnimation(true);
+    }
+
+    private void FireProjectileAtCurrentTarget()
+    {
+        if (currentTarget == null)
+            return;
+
+        if (projectileTemplate == null)
+        {
+            DealDamageToCurrentTarget();
+            return;
+        }
+
+        Vector3 spawnPos = projectileSpawn != null ? projectileSpawn.position : transform.position;
+        GameObject bolt = Instantiate(projectileTemplate, spawnPos, projectileTemplate.transform.rotation);
+        bolt.SetActive(true);
+
+        RangerProjectile flight = bolt.GetComponent<RangerProjectile>();
+        if (flight == null)
+            flight = bolt.AddComponent<RangerProjectile>();
+
+        flight.Launch(currentTarget, damagePerHit, projectileSpeed, projectileHitRadius, projectileAimOffset);
+    }
+
+    private void ResolveProjectileSpawn()
+    {
+        if (projectileSpawn == null)
+        {
+            projectileSpawn = transform.Find("Ranger Projectile");
+            if (projectileSpawn == null)
+            {
+                Transform[] children = GetComponentsInChildren<Transform>(true);
+                for (int i = 0; i < children.Length; i++)
+                {
+                    if (children[i] != null && children[i].name == "Ranger Projectile")
+                    {
+                        projectileSpawn = children[i];
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (projectileSpawn == null)
+            return;
+
+        projectileTemplate = projectileSpawn.gameObject;
+        projectileTemplate.SetActive(false);
     }
 
     private void UpdateCombatAnimation(bool targetInRange)

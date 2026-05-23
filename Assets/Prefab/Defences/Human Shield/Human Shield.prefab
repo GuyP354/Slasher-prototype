@@ -69,11 +69,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f57424fdd40bf5a47beb508c8d97263a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
-  maxHealth: 60
+  maxHealth: 120
   destroyGameObjectOnDeath: 1
   onDeath:
     m_PersistentCalls:
       m_Calls: []
+  playDeathAnimationOnDeath: 0
+  deathDisplaySeconds: 2
+  deathVisualObject: {fileID: 0}
+  deathChildName: Death animations
+  deathClipName: Death animations
 --- !u!114 &1770645958127658618
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -92,7 +97,7 @@ MonoBehaviour:
   attackCooldownSeconds: 0
   damageWindUpSeconds: 3
   damagePerHit: 0
-  minSeparationFromOtherDefences: 356.4
+  minSeparationFromOtherDefences: 350
 --- !u!54 &6398004058733578796
 Rigidbody:
   m_ObjectHideFlags: 0

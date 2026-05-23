@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3503959757442902275}
   - component: {fileID: 216788291328883476}
   - component: {fileID: 5514799713533427972}
+  - component: {fileID: 9083179755486086442}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Enemy
@@ -138,6 +139,29 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &9083179755486086442
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2503522544871709736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: baa6c2b727cf484498783df3b1b41720, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CombatRangeAnimator
+  animator: {fileID: 0}
+  engagedBoolParameter: HasTarget
+  driveMode: 0
+  detectionRange: 6
+  targetTags:
+  - Enemy
+  detectionLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  scanInterval: 0.15
+  usePlanarDistance: 1
 --- !u!1001 &6920395184424863515
 PrefabInstance:
   m_ObjectHideFlags: 0

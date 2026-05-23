@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: fe9dbc5bb669b2343a854c5bb95a6979
+guid: ae2cf2e1680400f4780416a50ad6f2ca
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -127,7 +127,7 @@ ScriptedImporter:
     tessellationDetail: 0
     uvTransform: {x: 0, y: 0}
   animatedSpriteImportData:
-  - name: Skinny Enemy
+  - name: Strong Enemy
     originalName: 
     pivot: {x: 0.5, y: 0}
     alignment: 9
@@ -138,8 +138,8 @@ ScriptedImporter:
       x: 4
       y: 4
       width: 23
-      height: 38
-    spriteID: 6e76b8ab39353af479434d0736a45e42
+      height: 36
+    spriteID: b126e1e6ad2b120449383f0e4cb857a0
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -153,25 +153,25 @@ ScriptedImporter:
   asepriteLayers:
   - layerIndex: 0
     uuid:
-      value0: 2229851730
+      value0: 144285417
       value1: 0
       value2: 0
       value3: 0
     guid: 0
-    name: Skinny Enemy
+    name: Strong Enemy
     layerFlags: 0
     layerType: 0
     blendMode: 0
     cells:
-    - name: Skinny Enemy
+    - name: Strong Enemy
       frameIndex: 0
       additiveSortOrder: 0
       cellRect:
         x: 0
         y: 0
         width: 23
-        height: 38
-      spriteId: 6e76b8ab39353af479434d0736a45e42
+        height: 36
+      spriteId: b126e1e6ad2b120449383f0e4cb857a0
     linkedCells: []
     tileCells: []
     tileSetIndex: 0

@@ -96,9 +96,9 @@ MonoBehaviour:
   attackRange: 7
   attacksPerSecond: 1
   attackCooldownSeconds: 12
-  damageWindUpSeconds: 3
+  damageWindUpSeconds: 2.3
   damagePerHit: 10
-  minSeparationFromOtherDefences: 356.4
+  minSeparationFromOtherDefences: 350
 --- !u!54 &6398004058733578796
 Rigidbody:
   m_ObjectHideFlags: 0
