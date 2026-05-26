@@ -40,6 +40,7 @@ public partial class EnemyCombat : MonoBehaviour
     private float nextAttackTime;
     private Health health;
     private PossessedEnemy possessedCached;
+    private CombatRangeAnimator combatRangeAnimator;
 
     // Non-alloc scan buffer (increase if you expect many obstacles clustered)
     private readonly Collider[] hits = new Collider[24];
@@ -55,6 +56,7 @@ public partial class EnemyCombat : MonoBehaviour
 
         health = GetComponent<Health>();
         possessedCached = GetComponent<PossessedEnemy>();
+        combatRangeAnimator = GetComponent<CombatRangeAnimator>();
         CacheLivingSprite();
     }
 
@@ -226,6 +228,8 @@ public partial class EnemyCombat : MonoBehaviour
             agent.isStopped = false;
             agent.SetDestination(objective.position);
         }
+
+        UpdateAttackAnimation();
     }
 
     private void UpdatePossessedEnemy()
@@ -262,6 +266,19 @@ public partial class EnemyCombat : MonoBehaviour
         {
             agent.isStopped = true;
         }
+
+        UpdateAttackAnimation();
+    }
+
+    private void UpdateAttackAnimation()
+    {
+        if (combatRangeAnimator == null)
+            return;
+
+        bool engaged = currentObstacle != null
+            && PlanarDistance(transform.position, currentObstacle.position) <= attackRange;
+
+        combatRangeAnimator.SetEngaged(engaged);
     }
 
     private Transform FindClosestPossessedEnemyInRange()

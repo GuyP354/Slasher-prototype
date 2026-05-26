@@ -33,7 +33,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Skinny Enemy animation_Clip
+  m_Name: Strong Enemy walking animation_Clip
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
@@ -47,7 +47,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 6381274657087202354, guid: a95a01db91cbf014caca71799d00ef49, type: 3}
+  m_Motion: {fileID: 9077455454967066768, guid: 4f90236730e8e6645bf1ec70f8ebf2de, type: 3}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -127,7 +127,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7772214425974937669, guid: bdbbc5d97c473344c8c1860f0b030d99, type: 3}
+  m_Motion: {fileID: -8068381122583035650, guid: 2657fbdcdb810c24689954e2df745d5b, type: 3}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 

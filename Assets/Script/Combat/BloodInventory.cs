@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class BloodInventory : MonoSingleton<BloodInventory>
 {
-    [SerializeField] private int startingBlood = 5;
+    [SerializeField] private int startingBlood = 0;
 
     public int CurrentBlood { get; private set; }
 
