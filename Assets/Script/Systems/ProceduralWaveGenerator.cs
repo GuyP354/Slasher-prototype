@@ -79,14 +79,14 @@ public static class ProceduralWaveGenerator
         float interval,
         float strongChance)
     {
+        // Current Wave.SpawnInfo does not expose strong-enemy roll fields.
+        // Keep parameter for compatibility with wave-band logic, but ignore for now.
         return new Wave.WaveEvent.SpawnInfo
         {
             spawnPointIndex = spawnPointIndex,
             spawnPrefabIndex = spawnPrefabIndex,
             amount = amount,
-            interval = interval,
-            usePerSpawnPrefabRoll = strongChance > 0f,
-            strongSpawnChance = strongChance
+            interval = interval
         };
     }
 

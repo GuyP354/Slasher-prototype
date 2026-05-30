@@ -15,6 +15,7 @@ public class PossessRoundCoordinator : MonoBehaviour
     private int waveEpoch;
     private Coroutine spawnRoutine;
     private PossessLazerBeam activeBeam;
+    public bool HasActivePickup => activeBeam != null && activeBeam.gameObject != null && activeBeam.gameObject.activeInHierarchy;
 
     private void Awake()
     {

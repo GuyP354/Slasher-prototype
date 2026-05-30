@@ -26,6 +26,8 @@ public class LevelManager : MonoSingleton<LevelManager>
     private UIManager uiManager;
 
     public bool IsWaveActive => waveActive;
+    public int CurrentWave => currentWave;
+    public int RuntimeWave => currentWave;
 
     /// <summary>True when the player can press E at the lever to begin a wave round (not mid-wave, cooldown elapsed).</summary>
     public bool CanStartWaveFromInteraction()
@@ -34,6 +36,12 @@ public class LevelManager : MonoSingleton<LevelManager>
             return false;
 
         return Time.time >= nextWaveCanStartAt;
+    }
+
+    /// <summary>Gate/start hints should be shown while waiting to start next wave (planning phase).</summary>
+    public bool ShouldShowGateStartHint()
+    {
+        return !waveActive && !levelEnded && Time.time >= nextWaveCanStartAt;
     }
 
     

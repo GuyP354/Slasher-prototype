@@ -41,6 +41,9 @@ public partial class EnemyCombat : MonoBehaviour
     private Health health;
     private PossessedEnemy possessedCached;
     private CombatRangeAnimator combatRangeAnimator;
+    private Transform provokedHumanShieldTarget;
+    private float provokedUntilTime;
+    private float provokeSearchRadius = 25f;
 
     // Non-alloc scan buffer (increase if you expect many obstacles clustered)
     private readonly Collider[] hits = new Collider[24];
@@ -205,7 +208,9 @@ public partial class EnemyCombat : MonoBehaviour
         if (Time.time >= nextScanTime)
         {
             nextScanTime = Time.time + scanInterval;
-            currentObstacle = FindClosestPossessedEnemyInRange() ?? FindBestObstacleInRange();
+            UpdateProvokedTowardHumanShield();
+            if (currentObstacle == null)
+                currentObstacle = FindClosestPossessedEnemyInRange() ?? FindBestObstacleInRange();
         }
 
         if (currentObstacle != null)
@@ -279,6 +284,74 @@ public partial class EnemyCombat : MonoBehaviour
             && PlanarDistance(transform.position, currentObstacle.position) <= attackRange;
 
         combatRangeAnimator.SetEngaged(engaged);
+    }
+
+    /// <summary>Force this enemy to target a Human Shield for a short duration.</summary>
+    public void ProvokeTowardHumanShield(Transform humanShield, float durationSeconds, float searchRadius)
+    {
+        if (humanShield == null || durationSeconds <= 0f)
+            return;
+
+        provokedHumanShieldTarget = humanShield;
+        provokedUntilTime = Time.time + durationSeconds;
+        provokeSearchRadius = Mathf.Max(1f, searchRadius);
+    }
+
+    private void UpdateProvokedTowardHumanShield()
+    {
+        if (Time.time >= provokedUntilTime)
+        {
+            provokedHumanShieldTarget = null;
+            return;
+        }
+
+        if (IsValidHumanShieldTarget(provokedHumanShieldTarget))
+        {
+            currentObstacle = provokedHumanShieldTarget;
+            return;
+        }
+
+        provokedHumanShieldTarget = FindNearestHumanShield(provokeSearchRadius);
+        if (IsValidHumanShieldTarget(provokedHumanShieldTarget))
+            currentObstacle = provokedHumanShieldTarget;
+    }
+
+    private static bool IsValidHumanShieldTarget(Transform target)
+    {
+        if (target == null)
+            return false;
+
+        if (!target.gameObject.activeInHierarchy)
+            return false;
+
+        if (target.GetComponent<HumanShieldProvokeAura>() == null)
+            return false;
+
+        Health hp = target.GetComponent<Health>();
+        return hp == null || !hp.IsDead;
+    }
+
+    private Transform FindNearestHumanShield(float range)
+    {
+        HumanShieldProvokeAura[] shields = FindObjectsByType<HumanShieldProvokeAura>(FindObjectsSortMode.None);
+        Transform best = null;
+        float bestDist = Mathf.Max(0.01f, range) * Mathf.Max(0.01f, range);
+
+        for (int i = 0; i < shields.Length; i++)
+        {
+            HumanShieldProvokeAura shield = shields[i];
+            if (shield == null || !IsValidHumanShieldTarget(shield.transform))
+                continue;
+
+            float sqr = (shield.transform.position - transform.position).sqrMagnitude;
+            if (sqr > bestDist)
+                continue;
+
+            bestDist = sqr;
+            best = shield.transform;
+        }
+
+        return best;
     }
 
     private Transform FindClosestPossessedEnemyInRange()
